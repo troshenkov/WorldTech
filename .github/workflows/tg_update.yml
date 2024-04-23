@@ -36,9 +36,6 @@ jobs:
       - name: Get the last commit hash
         run: commit=$(git log -1 --pretty=format:"%H")
       
-      - name: Get the last commit hash
-	run: commit=$(git log -1 --pretty=format:"%H")
-      
       - name: Get the list of files changed in the last commit
 	run: files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | head -n 1 | grep  ".md")
       
