@@ -26,19 +26,18 @@ jobs:
       - uses: actions/checkout@v3
 
       # Runs a set of commands using the runners shell
-      - name: Run a multi-line script 
+      - name: Run a multi-line script
+        script: |
+          #!/bin/bash 
+          #Get the last commit hash
+          commit=$(git log -1 --pretty=format:"%H")
+          #Get the list of files changed in the last commit
+          files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | head -n 1 | grep  ".md")
+          #Get the last file changed
+          last_file=$(echo "$files_changed" | tail -n 1)
+          #TG update
+          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHANNEL_ID} -d parse_mode=Markdown --data-urlencode text@${last_file}
+
         env:
           TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-       
-      - name: Get the last commit hash
-        run: commit=$(git log -1 --pretty=format:"%H")
-      
-      - name: Get the list of files changed in the last commit
-	run: files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | head -n 1 | grep  ".md")
-      
-      - name: Get the last file changed
-	run: last_file=$(echo "$files_changed" | tail -n 1)
-      
-      - name: TG update
-        run: curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHANNEL_ID} -d parse_mode=Markdown --data-urlencode text@${last_file}
