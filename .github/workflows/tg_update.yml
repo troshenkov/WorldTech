@@ -28,5 +28,7 @@ jobs:
           #Get the last file changed
           last_file=$(echo "$files_changed" | tail -n 1)
           #TG update
-          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHANNEL_ID} -d parse_mode=Markdown --data-urlencode text@${last_file}
+          if [  ${last_file} ]{
+            curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHANNEL_ID} -d parse_mode=Markdown --data-urlencode text@${last_file}
+          }
 
