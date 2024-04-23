@@ -35,5 +35,5 @@ jobs:
           if [ ! ${TELEGRAM_BOT_TOKEN} ] { exit 2 }
           if [ ! ${TELEGRAM_CHANNEL_ID} ] { exit 3 }
           if [ ! ${TELEGRAM_CHAT_ID} ] { exit 4 }
-          curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text="New commit pushed to the repository"
+          #curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text="New commit pushed to the repository"
 
