@@ -22,20 +22,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           #!/bin/bash
-          echo ${TELEGRAM_BOT_TOKEN}
-          echo ${TELEGRAM_CHANNEL_ID} 
-          #Get the last commit hash
-<<<<<<< HEAD
-          commit=$(git log -1 --pretty=format:"%H")  2>&1
-          #Get the list of files changed in the last commit
-          files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | head -n 1 | grep  ".md")  2>&1
-          #Get the last file changed
-          last_file=$(echo "$files_changed" | tail -n 1)  2>&1
-          #TG update
-          if [  ${last_file} ]{
-            curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHANNEL_ID} -d parse_mode=Markdown --data-urlencode text@${last_file}  2>&1
-          }
-=======
+          #
           #commit=$(git log -1 --pretty=format:"%H")
           #Get the list of files changed in the last commit
           #files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | head -n 1 | grep  ".md")
@@ -47,5 +34,4 @@ jobs:
           #}
 
           curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text="New commit pushed to the repository"
->>>>>>> 4bbd58f (add actions)
 
