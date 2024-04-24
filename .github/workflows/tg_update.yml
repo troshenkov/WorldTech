@@ -13,8 +13,8 @@ jobs:
       tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
       tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
-        uses: actions/checkout@v4
-        run: |
+      uses: actions/checkout@v4
+      run: |
           #!/bin/bash
           #
           #commit=$(git log -1 --pretty=format:"%H")
