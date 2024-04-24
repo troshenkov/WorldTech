@@ -8,10 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    #env:
-    #  tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-    #  tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-    #  tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
       - uses: actions/checkout@v4
       - shell: bash
@@ -32,7 +28,7 @@ jobs:
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@${last_file}
           #}
            echo "TG_BT_TKN: --> " ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          if [ ! $tg_bot_token: ] { exit 2 }
+          if [ ! $tg_bot_token ] { exit 2 }
           if [ ! $tg_channel_id ] { exit 3 }
           if [ ! $tg_chat_id ] { exit 4 }
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
