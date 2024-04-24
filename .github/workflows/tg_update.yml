@@ -14,7 +14,12 @@ jobs:
     #  tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - shell: bash
+        env:
+          tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
           #!/bin/bash
           #
           #commit=$(git log -1 --pretty=format:"%H")
