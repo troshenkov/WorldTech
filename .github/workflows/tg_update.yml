@@ -17,11 +17,17 @@ jobs:
 
       - name: Run a multi-line script
         env:
-          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           #!/bin/bash
+          TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID=${{ secrets.TELEGRAM_CHANNEL_ID }}
+          TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+          export $TELEGRAM_BOT_TOKEN
+          export $TELEGRAM_CHANNEL_ID
+          export $TELEGRAM_CHAT_ID
           #
           #commit=$(git log -1 --pretty=format:"%H")
           #Get the list of files changed in the last commit
