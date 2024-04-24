@@ -16,9 +16,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run a multi-line script
-          env: TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          env: TELEGRAM_CHANNEL_ID=${{ secrets.TELEGRAM_CHANNEL_ID }}
-          env: TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
+          env:
+            TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+            TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           run: |
           #!/bin/bash
           #
