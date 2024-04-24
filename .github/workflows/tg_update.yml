@@ -24,10 +24,11 @@ jobs:
           #last_file=$(echo "$files_changed" | tail -n 1)
           #TG update
           #if [  ${last_file} ]{
-          #  curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHANNEL_ID} -d parse_mode=Markdown --data-urlencode text@${last_file}
+          #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@${last_file}
           #}
+          echo ${{ secrets.TELEGRAM_BOT_TOKEN }}
           if [ ! $tg_bot_token: ] { exit 2 }
           if [ ! $tg_channel_id ] { exit 3 }
           if [ ! $tg_chat_id ] { exit 4 }
-          #curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text="New commit pushed to the repository"
+          #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
 
