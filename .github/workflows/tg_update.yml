@@ -5,20 +5,15 @@ on:
   pull_request:
     branches: [ "main" ]
 
-  workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+      tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
-      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Run a multi-line script
         run: |
           #!/bin/bash
           #
@@ -31,8 +26,8 @@ jobs:
           #if [  ${last_file} ]{
           #  curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHANNEL_ID} -d parse_mode=Markdown --data-urlencode text@${last_file}
           #}
-          if [ ! ${TELEGRAM_BOT_TOKEN} ] { exit 2 }
-          if [ ! ${TELEGRAM_CHANNEL_ID} ] { exit 3 }
-          if [ ! ${TELEGRAM_CHAT_ID} ] { exit 4 }
+          if [ ! $tg_bot_token: ] { exit 2 }
+          if [ ! $tg_channel_id ] { exit 3 }
+          if [ ! $tg_chat_id ] { exit 4 }
           #curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage -d chat_id=${TELEGRAM_CHAT_ID} -d text="New commit pushed to the repository"
 
