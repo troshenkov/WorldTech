@@ -8,16 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-      tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+    #env:
+    #  tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    #  tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+    #  tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
     steps:
-      env:
-        tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-        tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
-
       - uses: actions/checkout@v4
       - run: |
           #!/bin/bash
