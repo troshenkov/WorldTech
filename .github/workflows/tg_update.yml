@@ -12,10 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - shell: bash
-        env:
-          tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           #!/bin/bash
           #
@@ -33,4 +29,8 @@ jobs:
           if [ ! $tg_channel_id ] { exit 3 }
           if [ ! $tg_chat_id ] { exit 4 }
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
+        env:
+          tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
 
