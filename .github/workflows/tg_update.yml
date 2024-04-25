@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    secrets: inherit # MUST HAVE THIS
     steps:
       - uses: actions/checkout@v4
       - shell: bash
@@ -38,7 +39,7 @@ jobs:
         run: echo "::set-output name=content::$(cat 042223-2.md)"
 
       - name: Update Telegram Channel
-        uses: appleboy/telegram-action@v3
+        uses: appleboy/telegram-action@master
         with:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           chat_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
