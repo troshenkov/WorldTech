@@ -34,7 +34,6 @@ jobs:
           # tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Update Telegram Channel
-        run: |
-          echo ${token} 
+        uses: echo ${token} 
         with:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
