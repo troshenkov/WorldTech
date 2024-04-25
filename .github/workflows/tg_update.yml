@@ -38,7 +38,7 @@ jobs:
         run: echo "::set-output name=content::$(cat 042223-2.md)"
 
       - name: Update Telegram Channel
-        uses: appleboy/telegram-action@v2
+        uses: appleboy/telegram-action@v3
         with:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           chat_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
