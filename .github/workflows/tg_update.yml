@@ -1,6 +1,8 @@
 name: CI
-on: workflow_dispatch
-
+on:
+  push:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +22,7 @@ jobs:
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@${last_file}
           #}
            echo "TG_BT_TKN = " ${{ secrets.TELEGRAM_BOT_TOKEN }}
-           echo "fg_bot_token= " $tg_bot_token
+           echo "tg_bot_token= " $tg_bot_token
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
