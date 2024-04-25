@@ -33,13 +33,8 @@ jobs:
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
           tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
 
-      - name: Read Markdown file
-        id: read-file
-        run: echo "::set-output name=content::$(cat 042223-2.md)"
-
       - name: Update Telegram Channel
-        uses: appleboy/telegram-action@master
+        run: echo $token 
         with:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           chat_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          message: ${{ steps.read-file.outputs.content }}
