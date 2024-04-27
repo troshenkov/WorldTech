@@ -14,13 +14,16 @@ jobs:
           #!/bin/bash
           #
           commit=$(git log -1 --pretty=format:"%H")
+          echo $commit
           #Get the list of files changed in the last commit
-          files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | head -n 1 | grep  ".md")
+          file_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | head -n 1 | grep  ".md")
+          echo $file_changed
           #Get the last file changed
-          last_file=$(echo "$files_changed" | tail -n 1)
+          file=$(echo "$file_changed" | tail -n 1)
+          echo $file
           #TG update
-          if [  ${last_file} ]; then
-          curl -s -X POST https://api.telegram.org/bot${tg_bot_token}/sendMessage -d chat_id=${tg_channel_id} -d parse_mode=Markdown --data-urlencode text@${last_file}
+          if [  ${file} ]; then
+          curl -s -X POST https://api.telegram.org/bot${tg_bot_token}/sendMessage -d chat_id=${tg_channel_id} -d parse_mode=Markdown --data-urlencode text@${file}
           fi
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
         env:
