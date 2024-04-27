@@ -19,9 +19,9 @@ jobs:
           #Get the last file changed
           last_file=$(echo "$files_changed" | tail -n 1)
           #TG update
-          if [  ${last_file} ]{
-          curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@${last_file}
-          }
+          if [  ${last_file} ]; then
+          curl -s -X POST https://api.telegram.org/bot${tg_bot_token}/sendMessage -d chat_id=${tg_channel_id} -d parse_mode=Markdown --data-urlencode text@${last_file}
+          fi
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
