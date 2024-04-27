@@ -14,7 +14,7 @@ jobs:
           #!/bin/bash
           #commit=$(git log -1 --pretty=format:"%H")
           #echo $commit
-          changes=$(git diff-tree --no-commit-id --name-only -r $(git log -1 --pretty=format:"%H") | grep  ".md" )
+          changes=$(git diff-tree --no-commit-id --name-only -r $(git diff-tree --no-commit-id --name-only -r HEAD --) | grep  ".md" )
           echo $changes
           #Get the last file changed
           #last_file=$(echo $files_changed | tail -n 1)
