@@ -16,7 +16,7 @@ jobs:
           commit=$(git log -1 --pretty=format:"%H")
           echo $commit
           #Get the list of files changed in the last commit
-          files_changed=$(git diff-tree --name-only -r ${commit} | grep  ".md")
+          files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit})
           echo $files_changed
           #Get the last file changed
           last_file=$(echo ${files_changed} | tail -n 1)
