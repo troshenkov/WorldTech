@@ -4,7 +4,7 @@ on:
     branches:
       - main 
 jobs:
-  secrets: inherit
+secrets: inherit
   build:
     runs-on: ubuntu-latest
     environment: production
