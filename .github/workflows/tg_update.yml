@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     with:
       secrets: inherit
-        envPAT: ${{ secrets.envPAT }}
+      envPAT: ${{ secrets.envPAT }}
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
