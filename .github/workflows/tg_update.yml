@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    secrets:
+      envPAT: ${{ secrets.envPAT }}
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
@@ -16,7 +18,6 @@ jobs:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
           #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
-        secrets: inherit
         run: |
           #!/bin/bash
           new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
