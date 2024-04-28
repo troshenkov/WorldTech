@@ -6,10 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: production
     steps:
-      #      - name: Check out the repository to the runner
-      #        uses: actions/checkout@v4
       - name: Run the scripts
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
