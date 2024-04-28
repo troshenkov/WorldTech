@@ -27,6 +27,6 @@ jobs:
           echo $msg
           #TG update
           #if [  $last_file ]; then
-          curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$last_file
+          curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$msg
           #fi
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
