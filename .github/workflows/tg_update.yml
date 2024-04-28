@@ -6,9 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    with:
-      secrets: inherit
-      envPAT: ${{ secrets.envPAT }}
+    secrets: inherit
+    envPAT: ${{ secrets.envPAT }}
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
