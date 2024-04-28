@@ -17,7 +17,7 @@ jobs:
           #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           #!/bin/bash
-          #commit=$(git log -1 --pretty=format:"%H")
+          commit=$(git log -1 --pretty=format:"%H")
           echo $commit
           echo $(git diff-tree --no-commit-id --name-only -r $commit )
           echo $(git diff-tree -h)
