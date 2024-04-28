@@ -18,12 +18,13 @@ jobs:
           #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           #!/bin/bash
-          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD  | grep  ".md" )
+          commit=$(git log -1 --pretty=format:"%H")
+          new_md=$(git diff-tree --no-commit-id --name-only -r $commit  | grep  ".md" )
           echo $tg_bot_token
           echo $tg_channel_id
-          #Get the last file changed
-          last_file=$(echo $new_md | tail -n 1)
-          echo $last_file
+          # Print the raw content of the last file changed
+          msg=$(git show $commit:$new_md)
+          echo $msg
           #TG update
           #if [  $last_file ]; then
           curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$last_file
