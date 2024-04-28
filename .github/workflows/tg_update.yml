@@ -7,7 +7,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Run the scripts
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
+      - shell: bash
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
