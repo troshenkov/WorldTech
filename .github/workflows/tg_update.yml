@@ -4,10 +4,10 @@ on:
     branches:
       - main 
 jobs:
+  secrets: inherit
   build:
     runs-on: ubuntu-latest
     environment: production
-      secrets: inherit
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
