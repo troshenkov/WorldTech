@@ -23,6 +23,8 @@ jobs:
           echo $(git diff-tree --no-commit-id --name-only -r $commit  | grep  ".md" )
           echo $(git diff-tree --no-commit-id --name-only -r HEAD  | grep  ".md" )
           echo $(git diff-tree --no-commit-id --name-only -r HEAD -- | grep  ".md" )
+          echo $tg_bot_token
+          echo $tg_channel_id
           #Get the last file changed
           #last_file=$(echo $files_changed | tail -n 1)
           #echo $last_file
