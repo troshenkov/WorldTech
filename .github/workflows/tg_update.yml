@@ -8,8 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
-      - shell: bash
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
+      - name: Run the scripts
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
