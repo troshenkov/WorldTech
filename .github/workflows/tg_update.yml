@@ -26,4 +26,5 @@ jobs:
             curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
           fi
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
-        secrets: inherit
+        with:
+           secrets: inherit
