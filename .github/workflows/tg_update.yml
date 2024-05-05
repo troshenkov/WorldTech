@@ -15,7 +15,7 @@ jobs:
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
           #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}    
         run: |
-          #new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
           echo "$tg_bot_token"
           echo "$tg_channel_id"
           #TG Channel update
