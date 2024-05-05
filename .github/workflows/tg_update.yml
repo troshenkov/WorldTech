@@ -3,7 +3,7 @@ on: [workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-    #environment: production
+    environment: production
     steps:
       - name: Check out the repository to the runner
         uses: actions/checkout@v4
@@ -16,8 +16,8 @@ jobs:
           #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}    
         run: |
           #new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-          echo $tg_bot_token
-          echo $tg_channel_id
+          echo "$tg_bot_token"
+          echo "$tg_channel_id"
           #TG Channel update
           if [ -f $new_md ]; then
             curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
