@@ -20,7 +20,7 @@ jobs:
           echo Channel=> "$tg_channel_id"
           echo New_md=>  "$new_md"
           #TG Channel update
-          if [ -f $new_md ]; then
-            curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
-          fi
+          #if [ -f $new_md ]; then
+           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
+          #fi
           #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d text="New commit pushed to the repository"
