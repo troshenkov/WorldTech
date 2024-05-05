@@ -1,8 +1,5 @@
 name: CI
-on:
-  push:
-    branches:
-      - main 
+on: [workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,11 +13,9 @@ jobs:
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-          #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
-        secrets: inherit     
+          #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}    
         run: |
-          #!/bin/bash
-          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+          #new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
           echo $tg_bot_token
           echo $tg_channel_id
           #TG Channel update
