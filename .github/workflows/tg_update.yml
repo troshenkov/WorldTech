@@ -15,10 +15,10 @@ jobs:
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
           #tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}    
         run: |
-          #new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
           echo TOKEN=>   "$tg_bot_token"
           echo Channel=> "$tg_channel_id"
-          #echo New_md=>  "$new_md"
+          echo New_md=>  "$new_md"
           #TG Channel update
           #if [ -f $new_md ]; then
            #curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
