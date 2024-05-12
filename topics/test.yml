@@ -10,3 +10,4 @@ awk 'length > 80' filename
 awk 'END {print NR}' filename
 ```
     This command prints the total number of lines in the file `filename`.
+777
