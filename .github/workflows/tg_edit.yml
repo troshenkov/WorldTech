@@ -19,6 +19,7 @@ jobs:
           tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
            new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+           cat $new_md
            if [ -f $new_md ]; then
              curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d parse_mode=Markdown --data-urlencode text@$new_md
            fi
