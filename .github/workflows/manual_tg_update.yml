@@ -15,9 +15,14 @@ jobs:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: |
-          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+          # Get the last commit hash
+          commit=$(git log -1 --pretty=format:"%H")
+          # Get the list of files changed in the last commit
+          files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | grep ".md")
+          # Get the last file changed
+          new_md=$(echo "$files_changed" | tail -n 1)
           echo "NEW>> " $new_md
-          char_num=$(wc -c $new_md)
+          char_num=$(cat new_md | wc -c)
           echo "NUM: " $char_num
           if [ char_num -ge 4096 ]; then 
             echo "The text to big: " $((4096 - $char_num))
