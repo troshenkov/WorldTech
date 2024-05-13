@@ -19,14 +19,15 @@ jobs:
           commit=$(git log -1 --pretty=format:"%H")
           echo "commit: " $commit
           # Get the list of files changed in the last commit
-          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-          echo "NEW MD: " $new_md
+          new_f=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+          echo "NEW MD: " $new_f
           files_changed=$(git diff-tree --no-commit-id --name-only -r $commit | grep ".md")
           echo $files_changed
           if [ ! -f $files_changed ]; then
             echo "No .md file in commit: " $commit
             exit 1
-            else: echo Some hp      
+          else
+            echo "Some hp"      
           fi
           echo "files_changed: " $files_changed
           # Get the last file changed
