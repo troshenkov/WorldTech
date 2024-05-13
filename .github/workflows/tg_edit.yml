@@ -1,10 +1,7 @@
 name: Edit channel
 on:
-  push:
-    paths:
-      - 'topics/**'
-    branches:
-      - main
+   pull_request:
+    types: [opened, reopened]
 
 jobs:
   build:
@@ -23,7 +20,7 @@ jobs:
            new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
            char_num=$(wc -c $new_md)
            if [ char_num -ge 4096 ]; then 
-             echo the text to big $((4096 - $char_num))
+             echo "The text to big: " $((4096 - $char_num))
              exit 1
            fi 
            if [ -f $new_md ]; then
