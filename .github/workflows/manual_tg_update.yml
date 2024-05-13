@@ -17,6 +17,7 @@ jobs:
         run: |
           new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
            char_num=$(wc -c $new_md)
+           echo "CHARS: " $char_num
            if [ char_num -ge 4096 ]; then 
              echo "The text to big: " $((4096 - $char_num))
              exit 1
