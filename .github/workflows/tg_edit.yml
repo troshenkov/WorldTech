@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - 'topics/**'
+    branches:
+      - '!master'
 
 jobs:
   build:
@@ -23,4 +25,3 @@ jobs:
            if [ -f $new_md ]; then
              curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d parse_mode=Markdown --data-urlencode text@$new_md
            fi
-          

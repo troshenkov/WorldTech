@@ -3,8 +3,6 @@ on:
   pull_request:
     types:
       - closed
-    paths:
-      - 'topics/**'
     branches:
       - master
 jobs:
@@ -26,4 +24,3 @@ jobs:
            if [ -f $new_md ]; then
              curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
            fi
-          
