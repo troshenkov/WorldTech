@@ -1,4 +1,4 @@
-name: Update channel
+name: Manual update channel
 on: workflow_dispatch
 
 jobs:
