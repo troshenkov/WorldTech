@@ -15,25 +15,15 @@ jobs:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: |
-          # Get the last commit hash
-          commit=$(git log -1 --pretty=format:"%H")
-          echo "commit: " $commit
-          # Get the list of files changed in the last commit
+         # Get the list of files changed in the last commit
           new_f=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-          echo "NEW MD: " $new_f
-          files_changed=$(git diff-tree --no-commit-id --name-only -r $commit | grep ".md")
-          echo $files_changed
-          if [ ! -f $files_changed ]; then
-            echo "No .md file in commit: " $commit
+          if [ -z $new_f ]; then
+            echo "No .md file in commit:"
             exit 1
           else
             echo "Some hp"      
           fi
-          echo "files_changed: " $files_changed
-          # Get the last file changed
-          new_md=$(echo "$files_changed" | tail -n 1)
-          echo "NEW>> " $new_md
-          char_num=$(cat new_md | wc -c)
+          char_num=$(cat new_f | wc -c)
           echo "NUM: " $char_num
           if [ char_num -ge 4096 ]; then 
             echo "The text to big: " $((4096 - $char_num))
