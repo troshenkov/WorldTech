@@ -16,9 +16,9 @@ jobs:
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: |
           new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-          echo $new_md
+          echo "NEW>> " $new_md
           char_num=$(wc -c $new_md)
-          echo $char_num
+          echo "NUM: " $char_num
           if [ char_num -ge 4096 ]; then 
             echo "The text to big: " $((4096 - $char_num))
             exit 1
