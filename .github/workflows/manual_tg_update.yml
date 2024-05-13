@@ -16,7 +16,7 @@ jobs:
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: |
          # Get the list of files changed in the last commit
-          new_f=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+          new_f=$(git diff-tree --no-commit-id --name-only -r HEAD )
           echo "NEW F: " $new_f
           if [ $new_f == "" ]; then
             echo "No .md file in commit:"
