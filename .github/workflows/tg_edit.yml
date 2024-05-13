@@ -3,9 +3,6 @@ on:
   push:
     paths:
       - 'topics/**'
-    branches:
-      - '!master'
-
 jobs:
   build:
     runs-on: ubuntu-latest
