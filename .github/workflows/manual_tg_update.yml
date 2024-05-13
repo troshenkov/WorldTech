@@ -20,7 +20,7 @@ jobs:
           echo "commit: " $commit
           # Get the list of files changed in the last commit
           files_changed=$(git diff-tree --no-commit-id --name-only -r ${commit} | grep ".md")
-          if [ ! -f files_changed ]; then
+          if [ ! -f $files_changed ]; then
             echo "No .md file in commit: " $commit
             exit 1
           else
