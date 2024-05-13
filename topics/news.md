@@ -150,97 +150,57 @@ Autoconverted link https://github.com/nodeca/pica (enable linkify to see)
 
 Like links, Images also have a footnote style syntax
 
-![Alt text][id]
+ootnote 1 link[^first].
 
-With a reference later in the document defining the URL location:
+ootnote 2 link[^second].
 
-[id]: https://octodex.github.com/images/dojocat.jpg  "The Dojocat"
+nline footnote^[Text of inline footnote] definition.
 
+uplicated footnote reference[^second].
 
-## Plugins
+^first]: Footnote **can have markup**
 
-The killer feature of `markdown-it` is very effective support of
-[syntax plugins](https://www.npmjs.org/browse/keyword/markdown-it-plugin).
+   and multiple paragraphs.
 
-
-### [Emojies](https://github.com/markdown-it/markdown-it-emoji)
-
-> Classic markup: :wink: :cry: :laughing: :yum:
->
-> Shortcuts (emoticons): :-) :-( 8-) ;)
-
-see [how to change output](https://github.com/markdown-it/markdown-it-emoji#change-output) with twemoji.
+^second]: Footnote text.
 
 
-### [Subscript](https://github.com/markdown-it/markdown-it-sub) / [Superscript](https://github.com/markdown-it/markdown-it-sup)
+## [Definition lists](https://github.com/markdown-it/markdown-it-deflist)
 
-- 19^th^
-- H~2~O
+erm 1
 
+   Definition 1
+ith lazy continuation.
 
-### [\<ins>](https://github.com/markdown-it/markdown-it-ins)
+erm 2 with *inline markup*
 
-++Inserted text++
+   Definition 2
 
+       { some code, part of Definition 2 }
 
-### [\<mark>](https://github.com/markdown-it/markdown-it-mark)
+   Third paragraph of definition 2.
 
-==Marked text==
+Compact style:_
 
+erm 1
+ ~ Definition 1
 
-### [Footnotes](https://github.com/markdown-it/markdown-it-footnote)
-
-Footnote 1 link[^first].
-
-Footnote 2 link[^second].
-
-Inline footnote^[Text of inline footnote] definition.
-
-Duplicated footnote reference[^second].
-
-[^first]: Footnote **can have markup**
-
-    and multiple paragraphs.
-
-[^second]: Footnote text.
+erm 2
+ ~ Definition 2a
+ ~ Definition 2b
 
 
-### [Definition lists](https://github.com/markdown-it/markdown-it-deflist)
+## [Abbreviations](https://github.com/markdown-it/markdown-it-abbr)
 
-Term 1
+his is HTML abbreviation example.
 
-:   Definition 1
-with lazy continuation.
+t converts "HTML", but keep intact partial entries like "xxxHTMLyyy" and so on.
 
-Term 2 with *inline markup*
+[HTML]: Hyper Text Markup Language
 
-:   Definition 2
+## [Custom containers](https://github.com/markdown-it/markdown-it-container)
 
-        { some code, part of Definition 2 }
-
-    Third paragraph of definition 2.
-
-_Compact style:_
-
-Term 1
-  ~ Definition 1
-
-Term 2
-  ~ Definition 2a
-  ~ Definition 2b
-
-
-### [Abbreviations](https://github.com/markdown-it/markdown-it-abbr)
-
-This is HTML abbreviation example.
-
-It converts "HTML", but keep intact partial entries like "xxxHTMLyyy" and so on.
-
-*[HTML]: Hyper Text Markup Language
-
-### [Custom containers](https://github.com/markdown-it/markdown-it-container)
-
-::: warning
-*here be dragons*
-:::
+:: warning
+here be dragons*
+::
 

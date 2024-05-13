@@ -3,12 +3,9 @@ on:
   push:
     paths:
       - 'topics/**'
-<<<<<<< HEAD
-=======
     branches:
       - main
 
->>>>>>> 0ac35bc2a837511c849cd72098aad9f97c8fd18b
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,7 +21,13 @@ jobs:
           tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
            new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-           cat $new_md
+           char_num=$(wc -c $new_md)
+           if [ char_num -ge 4096 ]; then 
+             echo the text to big $((4096 - $char_num))
+             exit 1
+           fi 
            if [ -f $new_md ]; then
-             curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d parse_mode=Markdown --data-urlencode text@$new_md
+             curl -s -X POST  -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
+             https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d parse_mode=Markdown \
+             --data-urlencode text@$new_md
            fi
