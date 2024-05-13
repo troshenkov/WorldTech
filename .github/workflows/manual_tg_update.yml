@@ -17,6 +17,7 @@ jobs:
         run: |
          # Get the list of files changed in the last commit
           new_f=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+          echo "NEW F: " $new_f
           if [ -z $new_f ]; then
             echo "No .md file in commit:"
             exit 1
