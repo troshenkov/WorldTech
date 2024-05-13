@@ -3,6 +3,12 @@ on:
   push:
     paths:
       - 'topics/**'
+<<<<<<< HEAD
+=======
+    branches:
+      - main
+
+>>>>>>> 0ac35bc2a837511c849cd72098aad9f97c8fd18b
 jobs:
   build:
     runs-on: ubuntu-latest
