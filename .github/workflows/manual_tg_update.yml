@@ -1,21 +1,28 @@
 name: Update channel
 on: workflow_dispatch
-  branches:
-    - master
+
 jobs:
-  runs-on: ubuntu-latest
-  environment: production
-  steps:
-    - name: Check out the repository to the runner
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-    - shell: bash
-      env:
-        tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-      run: |
-        new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-        if [ -f $new_md ]; then
-          curl -s -X POST https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
-        fi
+  build:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out the repository to the runner
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - shell: bash
+        env:
+          tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: |
+          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
+           char_num=$(wc -c $new_md)
+           if [ char_num -ge 4096 ]; then 
+             echo "The text to big: " $((4096 - $char_num))
+             exit 1
+           fi 
+           if [ -f $new_md ]; then
+             curl -s -X POST  -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
+             https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown \
+             --data-urlencode text@$new_md
+           fi
