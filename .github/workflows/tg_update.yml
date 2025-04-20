@@ -1,15 +1,51 @@
+# ==================================================================================================
+# File: .github/workflows/tg_update.yml
+#
+# Workflow Name: Update channel
+#
+# Description:
+#   This GitHub Actions workflow is triggered when a pull request is closed on the `master` branch.
+#   If the pull request is merged, the workflow looks for the first `.md` file in the merge commit,
+#   and sends its content as a Markdown-formatted message to a specified Telegram channel using a bot.
+#
+# Use Case:
+#   Automatically notify your Telegram channel about changes (e.g. changelog, documentation) when PRs
+#   are merged into `master`.
+#
+# Trigger:
+#   - Event: pull_request
+#   - Types: [closed]
+#   - Branch: master
+#   - Conditional: only runs if PR is merged (not just closed)
+#
+# Required Secrets:
+#   - TELEGRAM_BOT_TOKEN: Token from @BotFather to send messages via Telegram Bot API
+#   - TELEGRAM_CHANNEL_ID: Telegram channel ID or @username where the message will be sent
+#
+# Assumptions:
+#   - At least one Markdown file (.md) is modified in the merge commit.
+#   - The file's contents are under Telegram’s 4096 character message limit.
+#
+# Limitations:
+#   - Only the first `.md` file found in the commit is sent.
+#   - The workflow does not handle oversized content (multi-message support can be added later).
+#
+# Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
+# Last updated: 2025-04-19
+# ==================================================================================================
+
 name: Update channel
 
 on:
   pull_request:
     types:
-      - closed
+      - closed           # Trigger on pull request closure
     branches:
-      - master
+      - master           # Only for PRs targeting master
 
 jobs:
   if_merged:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true  # Proceed only if PR was merged
     runs-on: ubuntu-latest
     environment: production
 
@@ -17,7 +53,7 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 2  # Ensure we can see at least one commit back
 
       - name: Send Markdown update to Telegram
         shell: bash
@@ -25,8 +61,10 @@ jobs:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: |
+          # Get the first .md file changed in the latest commit
           new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -m1 '\.md$' || true)
 
+          # Exit if no markdown file is found
           if [[ -z "$new_md" ]]; then
             echo "No Markdown file found in the last commit."
             exit 0
@@ -34,7 +72,15 @@ jobs:
 
           echo "Markdown file to send: $new_md"
 
+          # Check that the file exists and is within size limits
           if [[ -f "$new_md" ]]; then
+            char_count=$(wc -c < "$new_md")
+            if [[ $char_count -gt 4096 ]]; then
+              echo "Markdown file exceeds Telegram's character limit ($char_count characters)."
+              exit 1
+            fi
+
+            # Send content to Telegram
             curl -s -X POST \
               -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
               "https://api.telegram.org/bot$tg_bot_token/sendMessage" \
