@@ -1,35 +1,51 @@
 name: Manual update channel
-on: workflow_dispatch
+
+on: 
+  workflow_dispatch:
 
 jobs:
-  build:
+  update_channel:
     runs-on: ubuntu-latest
     environment: production
+
     steps:
-      - name: Check out the repository to the runner
+      - name: Check out the repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - shell: bash
+
+      - name: Send Markdown file to Telegram
+        shell: bash
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
         run: |
-         # Get the list of files changed in the last commit
-          new_f=$(git diff-tree --no-commit-id --name-only -r HEAD )
-          echo "NEW F: " $new_f
-          if [ $new_f == "" ]; then
-            echo "No .md file in commit:"
+          # Get the list of changed files in the last commit
+          changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
+
+          echo "Changed files: $changed_files"
+
+          # Find the first changed .md file (adjust if you need to handle multiple)
+          new_md=$(echo "$changed_files" | grep -m1 '\.md$' || true)
+
+          if [[ -z "$new_md" ]]; then
+            echo "No .md file found in the last commit."
             exit 1
-          else
-            echo "Some hp"      
           fi
-          char_num=$(cat new_f | wc -c)
-          echo "NUM: " $char_num
-          if [ char_num -ge 4096 ]; then 
-            echo "The text to big: " $((4096 - $char_num))
+
+          echo "Markdown file to post: $new_md"
+
+          # Check file size
+          char_num=$(wc -c < "$new_md")
+          echo "Character count: $char_num"
+
+          if (( char_num >= 4096 )); then
+            echo "The text is too big by $((char_num - 4096)) characters."
             exit 1
-          fi 
-          if [ -f $new_md ]; then
-            curl -s -X POST  https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown --data-urlencode text@$new_md
           fi
+
+          # Send message to Telegram
+          curl -s -X POST "https://api.telegram.org/bot$tg_bot_token/sendMessage" \
+            -d chat_id="$tg_channel_id" \
+            -d parse_mode=Markdown \
+            --data-urlencode text@"$new_md"
