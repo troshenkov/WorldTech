@@ -1,0 +1,107 @@
+# ==================================================================================================
+# File: .github/workflows/post_to_tg_channel.yml
+#
+# Workflow Name: Post to Telegram Channel
+#
+# Description:
+#   This GitHub Actions workflow is triggered either by a push to the 'latest.md' file or via 
+#   a scheduled cron job. It renames the 'latest.md' file to a date-based filename (e.g., 2025-04-20.md), 
+#   commits the renamed file, and sends its content to a specified Telegram channel using the 
+#   Telegram Bot API.
+#
+# Use Case:
+#   This workflow is useful for automatically posting updates or changelog entries to a Telegram channel 
+#   whenever 'latest.md' is updated, or at regular intervals (e.g., every Monday and Friday).
+#
+# Trigger:
+#   - Event: push
+#     - Triggered when 'latest.md' is pushed to the repository
+#   - Event: schedule
+#     - Triggered according to the cron schedule (e.g., every Monday at 8 AM UTC and Friday at 9 AM UTC)
+#
+# Required Secrets:
+#   - TELEGRAM_BOT_TOKEN: Token from @BotFather to send messages via Telegram Bot API
+#   - TELEGRAM_CHAT_ID: Telegram chat ID where the message will be sent
+#
+# Assumptions:
+#   - The 'latest.md' file is updated either via a push or according to the cron schedule.
+#   - The content of the 'latest.md' file is under Telegram's 4096 character limit for a message.
+#
+# Limitations:
+#   - Only the renamed 'latest.md' file will be processed (renamed to a date-based filename).
+#   - If there are issues with the git commit or push, the workflow will fail.
+#
+# Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
+# Last updated: 2025-04-20
+# ==================================================================================================
+
+name: Post to Telegram Channel
+
+# Trigger the workflow on push to the 'latest.md' file or on a scheduled cron job.
+on:
+  push:
+    paths:
+      - 'updates/latest.md'  # Trigger the workflow on push to 'latest.md'
+  schedule:
+    # Schedule the workflow to run every Monday at 8 AM UTC and every Friday at 9 AM UTC
+    - cron: '0 8 * * 1'  # Every Monday at 8 AM UTC
+    - cron: '0 9 * * 5'  # Every Friday at 9 AM UTC
+
+jobs:
+  post_to_telegram:
+    runs-on: ubuntu-latest  # Runs on the latest Ubuntu environment
+
+    steps:
+    # Step 1: Checkout the code from the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Get the current date and store it as an environment variable
+    - name: Get current date
+      id: get_date
+      run: echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    # Step 3: Rename 'latest.md' to a file with the current date (e.g., '2025-04-20.md')
+    - name: Rename latest.md to a date-based filename
+      run: |
+        NEW_FILE="updates/${CURRENT_DATE}.md"  # Create a new filename using the current date
+        mv updates/latest.md $NEW_FILE  # Rename the 'latest.md' to the new date-based filename
+        echo "Renamed latest.md to $NEW_FILE"  # Log the renaming action
+
+    # Step 4: Commit the renamed file and push the change to the repository
+    - name: Commit and push renamed file
+      run: |
+        # Define variables for GitHub username and email
+        GITHUB_USER_NAME="GitHub Actions Bot"  # Use a generic automation username
+        GITHUB_USER_EMAIL="actions@github.com"  # Use a generic automation email
+
+        # Configure git user information
+        git config user.name "${GITHUB_USER_NAME}"
+        git config user.email "${GITHUB_USER_EMAIL}"
+
+        # Stage the renamed file and commit it
+        git add updates/${CURRENT_DATE}.md  # Add the renamed file to staging
+        git commit -m "Rename latest.md to ${CURRENT_DATE}.md"  # Commit the changes
+
+        # Push the changes to the repository
+        git push  # Push the changes back to the repository
+
+    # Step 5: Read the content of the renamed file and prepare it for Telegram
+    - name: Read the Markdown message content
+      id: read_message
+      run: |
+        echo "msg<<EOF" >> $GITHUB_OUTPUT  # Start reading the message
+        cat $NEW_FILE >> $GITHUB_OUTPUT  # Append the content of the renamed file
+        echo "EOF" >> $GITHUB_OUTPUT  # End of the message content
+
+    # Step 6: Send the content to the Telegram channel using the Telegram Bot API
+    - name: Send message to Telegram
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}  # Use your Telegram bot token from secrets
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}  # Use your Telegram chat ID from secrets
+      run: |
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          -d chat_id="${TELEGRAM_CHAT_ID}" \
+          -d parse_mode="MarkdownV2" \
+          --data-urlencode text="${{ steps.read_message.outputs.msg }}"  # Send the content to Telegram
+
