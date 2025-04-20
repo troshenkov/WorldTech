@@ -1,28 +1,47 @@
 name: Update channel
+
 on:
   pull_request:
     types:
       - closed
     branches:
       - master
+
 jobs:
-   if_merged:
-     if: github.event.pull_request.merged == true
-     runs-on: ubuntu-latest
-     environment: production
-     steps:
-       - name: Check out the repository to the runner
-         uses: actions/checkout@v4
-         with:
+  if_merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
           fetch-depth: 2
-       - shell: bash
-         env:
-            tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-            tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-         run: |
-           new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-           if [ -f $new_md ]; then
-            curl -s -X POST  -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
-            https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown \
-             --data-urlencode text@$new_md
-           fi
+
+      - name: Send Markdown update to Telegram
+        shell: bash
+        env:
+          tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+        run: |
+          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -m1 '\.md$' || true)
+
+          if [[ -z "$new_md" ]]; then
+            echo "No Markdown file found in the last commit."
+            exit 0
+          fi
+
+          echo "Markdown file to send: $new_md"
+
+          if [[ -f "$new_md" ]]; then
+            curl -s -X POST \
+              -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
+              "https://api.telegram.org/bot$tg_bot_token/sendMessage" \
+              -d chat_id="$tg_channel_id" \
+              -d parse_mode=Markdown \
+              --data-urlencode text@"$new_md"
+          else
+            echo "File $new_md not found."
+            exit 1
+          fi
