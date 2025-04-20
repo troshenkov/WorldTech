@@ -1,29 +1,53 @@
 name: Edit channel
+
 on:
-   pull_request:
+  pull_request:
     types: [opened, reopened]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     environment: production
+
     steps:
-      - name: Check out the repository to the runner
+      - name: Check out the repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - shell: bash
+
+      - name: Send Markdown update to Telegram
+        shell: bash
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-           new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
-           char_num=$(wc -c $new_md)
-           if [ char_num -ge 4096 ]; then 
-             echo "The text to big: " $((4096 - $char_num))
-             exit 1
-           fi 
-           if [ -f $new_md ]; then
-             curl -s -X POST  -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
-             https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d parse_mode=Markdown \
-             --data-urlencode text@$new_md
-           fi
+          # Find the first changed .md file
+          new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -m1 '\.md$' || true)
+
+          if [[ -z "$new_md" ]]; then
+            echo "No Markdown (.md) file found in the last commit."
+            exit 0
+          fi
+
+          echo "Found Markdown file: $new_md"
+
+          if [[ -f "$new_md" ]]; then
+            char_num=$(wc -c < "$new_md")
+            echo "Character count: $char_num"
+
+            if (( char_num >= 4096 )); then
+              echo "The text is too big by $((char_num - 4096)) characters."
+              exit 1
+            fi
+
+            # Send the file content to Telegram
+            curl -s -X POST \
+              -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
+              "https://api.telegram.org/bot$tg_bot_token/sendMessage" \
+              -d chat_id="$tg_chat_id" \
+              -d parse_mode=Markdown \
+              --data-urlencode text@"$new_md"
+          else
+            echo "File does not exist: $new_md"
+            exit 1
+          fi
