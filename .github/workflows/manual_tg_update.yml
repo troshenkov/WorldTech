@@ -72,14 +72,14 @@ jobs:
         #git config user.email "${GITHUB_USER_EMAIL}"
         
         # Pull the latest changes from the remote repository
-        git pull --forge
+        git pull
 
         # Stage the renamed file and commit it
         git add updates/${CURRENT_DATE}.md  # Add the renamed file to staging
         git commit -m "Rename latest.md to ${CURRENT_DATE}.md"  # Commit the changes
 
         # Push the changes to the repository
-        git push origin main  # Push the changes back to the repository
+        git push # Push the changes back to the repository
 
     # Step 5: Read the content of the renamed file and prepare it for Telegram
     - name: Read the Markdown message content
