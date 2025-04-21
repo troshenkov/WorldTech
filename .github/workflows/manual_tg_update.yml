@@ -68,8 +68,8 @@ jobs:
         GITHUB_USER_EMAIL="actions@github.com"  # Use a generic automation email
 
         # Configure git user information
-        git config user.name "${GITHUB_USER_NAME}"
-        git config user.email "${GITHUB_USER_EMAIL}"
+        #git config user.name "${GITHUB_USER_NAME}"
+        #git config user.email "${GITHUB_USER_EMAIL}"
         
         # Pull the latest changes from the remote repository
         git pull --forge
