@@ -60,12 +60,7 @@ jobs:
         mv updates/latest.md $NEW_FILE  # Rename the 'latest.md' to the new date-based filename
         echo "Renamed latest.md to $NEW_FILE"  # Log the renaming action
 
-    # Step 4: Pull the latest changes from the remote repository and rebase
-    - name: Pull and rebase changes
-      run: |
-        git pull --rebase origin main  # Rebase local changes on top of remote
-
-    # Step 5: Commit the renamed file and push the change to the repository
+    # Step 4: Commit the renamed file and push the change to the repository
     - name: Commit and push renamed file
       run: |
         # Define variables for GitHub username and email
@@ -75,6 +70,9 @@ jobs:
         # Configure git user information
         git config user.name "${GITHUB_USER_NAME}"
         git config user.email "${GITHUB_USER_EMAIL}"
+        
+        # Pull the latest changes from the remote repository
+        git pull
 
         # Stage the renamed file and commit it
         git add updates/${CURRENT_DATE}.md  # Add the renamed file to staging
@@ -83,7 +81,7 @@ jobs:
         # Push the changes to the repository
         git push origin main  # Push the changes back to the repository
 
-    # Step 6: Read the content of the renamed file and prepare it for Telegram
+    # Step 5: Read the content of the renamed file and prepare it for Telegram
     - name: Read the Markdown message content
       id: read_message
       run: |
@@ -91,7 +89,7 @@ jobs:
         cat $NEW_FILE >> $GITHUB_OUTPUT  # Append the content of the renamed file
         echo "EOF" >> $GITHUB_OUTPUT  # End of the message content
 
-    # Step 7: Send the content to the Telegram channel using the Telegram Bot API
+    # Step 6: Send the content to the Telegram channel using the Telegram Bot API
     - name: Send message to Telegram
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}  # Use your Telegram bot token from secrets
