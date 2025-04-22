@@ -46,19 +46,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Get the current date and store it as an environment variable
-    - name: Get current date
-      id: get_date
-      run: echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+    # Step 2: Get the current date and time and store it as an environment variable
+    - name: Get current date and time
+      id: get_datetime
+      run: echo "CURRENT_DATETIME=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
 
-    # Step 3: Rename 'latest.md' to a file with the current date (e.g., '2025-04-20.md')
-    - name: Rename latest.md to a date-based filename
+    # Step 3: Rename 'latest.md' to a file with the current date and time (e.g., '2025-04-20_14-30-00.md')
+    - name: Rename latest.md to a datetime-based filename
       run: |
         if [ ! -f updates/latest.md ]; then
           echo "Error: 'latest.md' file not found. Exiting."
           exit 1
         fi
-        NEW_FILE="updates/${CURRENT_DATE}.md"
+        NEW_FILE="updates/${CURRENT_DATETIME}.md"
         mv updates/latest.md $NEW_FILE
         echo "Renamed 'latest.md' to '$NEW_FILE'."
 
