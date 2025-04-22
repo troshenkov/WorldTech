@@ -72,8 +72,8 @@ jobs:
         git config user.name "${GITHUB_USER_NAME}"
         git config user.email "${GITHUB_USER_EMAIL}"
 
-        # Pull the latest changes from the remote repository to avoid conflicts
-        git pull origin main  # Pull the latest changes before committing
+        # Pull the latest changes from the remote repository with rebase to avoid conflicts
+        git pull --rebase origin main  # Pull and rebase the latest changes
 
         # Stage the renamed file and commit it
         git add updates/${CURRENT_DATE}.md  # Add the renamed file to staging

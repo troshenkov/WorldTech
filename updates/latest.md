@@ -1,4 +1,4 @@
-4.  **Practical Examples:**
+-.  **Practical Examples:**
 
 -   **Print first and second columns from a file:**
 
