@@ -100,10 +100,17 @@ jobs:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}  # Use your Telegram bot token from secrets
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}  # Use your Telegram chat ID from secrets
       run: |
-        echo "Debug: Bot Token: ${TELEGRAM_BOT_TOKEN::10}..."
-        echo "Debug: Channel ID: $TELEGRAM_CHAT_ID"
         curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -d chat_id="${TELEGRAM_CHAT_ID}" \
           -d parse_mode="MarkdownV2" \
           --data-urlencode text="${{ steps.read_message.outputs.msg }}"  # Send the content to Telegram
+
+    # Step 7: Debug Secrets
+    - name: Debug Secrets
+      run: |
+        echo "Bot Token (first 10 chars): ${TELEGRAM_BOT_TOKEN::10}..."
+        echo "Chat ID: $TELEGRAM_CHAT_ID"
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
