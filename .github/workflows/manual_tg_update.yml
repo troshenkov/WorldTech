@@ -80,7 +80,11 @@ jobs:
         git commit -m "Rename latest.md to ${CURRENT_DATE}.md" || echo "No changes to commit."
 
         # Push the changes to the repository
-        git push origin main || { echo "Push failed. Aborting."; exit 1; }
+        git push origin main || { 
+          echo "Push failed. Attempting to resolve conflicts.";
+          git pull --rebase origin main || { echo "Second pull failed. Aborting."; exit 1; }
+          git push origin main || { echo "Second push failed. Aborting."; exit 1; }
+        }
 
     # Step 5: Read the content of the renamed file and prepare it for Telegram
     - name: Read the Markdown message content
