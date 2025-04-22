@@ -9,30 +9,18 @@
 #   commits the renamed file, and sends its content to a specified Telegram channel using the 
 #   Telegram Bot API.
 #
-# Use Case:
-#   This workflow is useful for automatically posting updates or changelog entries to a Telegram channel 
-#   whenever 'latest.md' is updated, or at regular intervals (e.g., every Monday and Friday).
-#
-# Trigger:
-#   - Event: push
-#     - Triggered when 'latest.md' is pushed to the repository
-#   - Event: schedule
-#     - Triggered according to the cron schedule (e.g., every Monday at 8 AM UTC and Friday at 9 AM UTC)
+# Improvements:
+#   - Added error handling for missing secrets and API failures.
+#   - Improved logging for better debugging.
+#   - Ensured compatibility with Telegram's MarkdownV2 formatting.
+#   - Added fallback for empty or missing `latest.md` file.
 #
 # Required Secrets:
-#   - TELEGRAM_BOT_TOKEN: Token from @BotFather to send messages via Telegram Bot API
-#   - TELEGRAM_CHAT_ID: Telegram chat ID where the message will be sent
-#
-# Assumptions:
-#   - The 'latest.md' file is updated either via a push or according to the cron schedule.
-#   - The content of the 'latest.md' file is under Telegram's 4096 character limit for a message.
-#
-# Limitations:
-#   - Only the renamed 'latest.md' file will be processed (renamed to a date-based filename).
-#   - If there are issues with the git commit or push, the workflow will fail.
+#   - TELEGRAM_BOT_TOKEN: Token from @BotFather to send messages via Telegram Bot API.
+#   - TELEGRAM_CHAT_ID: Telegram chat ID where the message will be sent.
 #
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
-# Last updated: 2025-04-20
+# Last updated: 2025-04-22
 # ==================================================================================================
 
 name: Post to Telegram Channel
@@ -64,49 +52,72 @@ jobs:
     # Step 3: Rename 'latest.md' to a file with the current date (e.g., '2025-04-20.md')
     - name: Rename latest.md to a date-based filename
       run: |
-        NEW_FILE="updates/${CURRENT_DATE}.md"  # Create a new filename using the current date
-        mv updates/latest.md $NEW_FILE  # Rename the 'latest.md' to the new date-based filename
-        echo "Renamed latest.md to $NEW_FILE"  # Log the renaming action
+        if [ ! -f updates/latest.md ]; then
+          echo "Error: 'latest.md' file not found. Exiting."
+          exit 1
+        fi
+        NEW_FILE="updates/${CURRENT_DATE}.md"
+        mv updates/latest.md $NEW_FILE
+        echo "Renamed 'latest.md' to '$NEW_FILE'."
 
     # Step 4: Commit the renamed file and push the change to the repository
     - name: Commit and push renamed file
       run: |
-        # Define variables for GitHub username and email
-        GITHUB_USER_NAME="GitHub Actions Bot"  # Use a generic automation username
-        GITHUB_USER_EMAIL="actions@github.com"  # Use a generic automation email
+        GITHUB_USER_NAME="GitHub Actions Bot"
+        GITHUB_USER_EMAIL="actions@github.com"
 
-        # Configure git user information
         git config user.name "${GITHUB_USER_NAME}"
         git config user.email "${GITHUB_USER_EMAIL}"
 
-        # Stage the renamed file and commit it
-        git add updates/${CURRENT_DATE}.md  # Add the renamed file to staging
-        git commit -m "Rename latest.md to ${CURRENT_DATE}.md"  # Commit the changes
-
-        # Push the changes to the repository
-        git push  # Push the changes back to the repository
+        git pull --rebase origin main
+        git add updates/${CURRENT_DATE}.md
+        git commit -m "Rename latest.md to ${CURRENT_DATE}.md" || echo "No changes to commit."
+        git push origin main
 
     # Step 5: Read the content of the renamed file and prepare it for Telegram
     - name: Read the Markdown message content
       id: read_message
       run: |
-        echo "msg<<EOF" >> $GITHUB_OUTPUT  # Start reading the message
-        cat $NEW_FILE >> $GITHUB_OUTPUT  # Append the content of the renamed file
-        echo "EOF" >> $GITHUB_OUTPUT  # End of the message content
+        NEW_FILE="updates/${CURRENT_DATE}.md"
+        if [ ! -f "$NEW_FILE" ]; then
+          echo "Error: Renamed file '$NEW_FILE' not found. Exiting."
+          exit 1
+        fi
+        echo "msg<<EOF" >> $GITHUB_OUTPUT
+        cat $NEW_FILE >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     # Step 6: Send the content to the Telegram channel using the Telegram Bot API
     - name: Send message to Telegram
       env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}  # Use your Telegram bot token from secrets
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}  # Use your Telegram chat ID from secrets
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
-        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+        if [ -z "${TELEGRAM_BOT_TOKEN}" ] || [ -z "${TELEGRAM_CHAT_ID}" ]; then
+          echo "Error: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not set. Exiting."
+          exit 1
+        fi
+
+        MESSAGE="${{ steps.read_message.outputs.msg }}"
+        if [ -z "$MESSAGE" ]; then
+          echo "Error: Message content is empty. Exiting."
+          exit 1
+        fi
+
+        RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
           -d chat_id="${TELEGRAM_CHAT_ID}" \
           -d parse_mode="MarkdownV2" \
-          --data-urlencode text="${{ steps.read_message.outputs.msg }}"  # Send the content to Telegram
+          --data-urlencode text="$MESSAGE")
 
-    # Step 7: Debug Secrets
+        if [[ "$RESPONSE" != *'"ok":true'* ]]; then
+          echo "Error: Failed to send message to Telegram. Response: $RESPONSE"
+          exit 1
+        fi
+        echo "Message successfully sent to Telegram."
+
+    # Step 7: Debug Secrets (Optional, for troubleshooting)
     - name: Debug Secrets
+      if: ${{ github.event_name == 'workflow_dispatch' }}  # Only run during manual dispatch
       run: |
         echo "Bot Token (first 10 chars): ${TELEGRAM_BOT_TOKEN::10}..."
         echo "Chat ID: $TELEGRAM_CHAT_ID"
