@@ -66,12 +66,24 @@ jobs:
         GITHUB_USER_NAME="GitHub Actions Bot"
         GITHUB_USER_EMAIL="actions@github.com"
 
+        # Configure Git user information
         git config user.name "${GITHUB_USER_NAME}"
         git config user.email "${GITHUB_USER_EMAIL}"
 
+        # Stash any unstaged changes to avoid conflicts
+        git stash --include-untracked
+
+        # Pull the latest changes from the remote repository with rebase
         git pull --rebase origin main
+
+        # Apply the stashed changes back
+        git stash pop || echo "No stashed changes to apply."
+
+        # Stage the renamed file and commit it
         git add updates/${CURRENT_DATE}.md
         git commit -m "Rename latest.md to ${CURRENT_DATE}.md" || echo "No changes to commit."
+
+        # Push the changes to the repository
         git push origin main
 
     # Step 5: Read the content of the renamed file and prepare it for Telegram
