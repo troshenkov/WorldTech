@@ -105,13 +105,18 @@ jobs:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
+        ERRORS=""
+
         if [ -z "${TELEGRAM_BOT_TOKEN}" ]; then
-          echo "Error: TELEGRAM_BOT_TOKEN is not set. Please configure the secret and try again. Exiting."
-          exit 1
+          ERRORS+="Error: TELEGRAM_BOT_TOKEN is not set. Please configure the secret and try again.\n"
         fi
 
         if [ -z "${TELEGRAM_CHAT_ID}" ]; then
-          echo "Error: TELEGRAM_CHAT_ID is not set. Please configure the secret and try again. Exiting."
+          ERRORS+="Error: TELEGRAM_CHAT_ID is not set. Please configure the secret and try again.\n"
+        fi
+
+        if [ -n "$ERRORS" ]; then
+          echo -e "$ERRORS"
           exit 1
         fi
 
