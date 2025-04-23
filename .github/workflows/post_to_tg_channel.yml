@@ -1,19 +1,20 @@
 # ==================================================================================================
 # File: .github/workflows/post_to_tg_channel.yml
 #
-# Workflow Name: Post to Telegram Channel
+# Workflow Name: Post News to Telegram
 #
 # Description:
-#   This GitHub Actions workflow is triggered either by a push to the 'latest.md' file or via 
-#   a scheduled cron job. It renames the 'latest.md' file to a date-based filename (e.g., 2025-04-20.md), 
-#   commits the renamed file, and sends its content to a specified Telegram channel using the 
-#   Telegram Bot API.
+#   This GitHub Actions workflow posts each Markdown news file in the `updates/` directory
+#   as a separate message to a Telegram channel. If a message exceeds 4,096 characters, it is split
+#   into smaller chunks and sent as multiple messages. After posting, the files are moved to a `posted/`
+#   directory to avoid re-posting.
 #
 # Improvements:
-#   - Added error handling for missing secrets and API failures.
-#   - Improved logging for better debugging.
-#   - Ensured compatibility with Telegram's MarkdownV2 formatting.
-#   - Added fallback for empty or missing `latest.md` file.
+#   - Handles Telegram's 4,096-character limit by splitting long messages.
+#   - Posts each news file as a separate Telegram message.
+#   - Archives processed files to avoid duplicates.
+#   - Improved error handling and logging.
+#   - Added manual trigger for the workflow.
 #
 # Required Secrets:
 #   - TELEGRAM_BOT_TOKEN: Token from @BotFather to send messages via Telegram Bot API.
@@ -23,86 +24,33 @@
 # Last updated: 2025-04-22
 # ==================================================================================================
 
-name: Post to Telegram Channel
+name: Post News to Telegram
 
-# Trigger the workflow on push to the 'latest.md' file or on a scheduled cron job.
+# Trigger the workflow on a schedule or manually
 on:
-  push:
-    paths:
-      - 'updates/latest.md'  # Trigger the workflow on push to 'latest.md'
   schedule:
-    # Schedule the workflow to run every Monday at 8 AM UTC and every Friday at 9 AM UTC
-    - cron: '0 8 * * 1'  # Every Monday at 8 AM UTC
-    - cron: '0 9 * * 5'  # Every Friday at 9 AM UTC
+    # Run the workflow every day at 8 AM UTC
+    - cron: '0 8 * * *'
+  workflow_dispatch:  # Allow manual triggering of the workflow
 
 jobs:
   post_to_telegram:
     runs-on: ubuntu-latest  # Runs on the latest Ubuntu environment
     environment: production # Specify the environment for deployment
-     
 
     steps:
-    # Step 1: Checkout the code from the repository
+    # Step 1: Checkout the repository
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Get the current date and time and store it as an environment variable
-    - name: Get current date and time
-      id: get_datetime
-      run: echo "CURRENT_DATETIME=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
-
-    # Step 3: Rename 'latest.md' to a file with the current date and time (e.g., '2025-04-20_14-30-00.md')
-    - name: Rename latest.md to a datetime-based filename
+    # Step 2: Ensure required directories exist
+    - name: Prepare directories
       run: |
-        if [ ! -f updates/latest.md ]; then
-          echo "Error: 'latest.md' file not found. Exiting."
-          exit 1
-        fi
-        NEW_FILE="updates/${CURRENT_DATETIME}.md"
-        mv updates/latest.md $NEW_FILE
-        echo "Renamed 'latest.md' to '$NEW_FILE'."
+        mkdir -p updates
+        mkdir -p posted
 
-    # Step 4: Commit the renamed file and push the change to the repository
-    - name: Commit and push renamed file
-      run: |
-        GITHUB_USER_NAME="GitHub Actions Bot"
-        GITHUB_USER_EMAIL="actions@github.com"
-
-        # Configure Git user information
-        git config user.name "${GITHUB_USER_NAME}"
-        git config user.email "${GITHUB_USER_EMAIL}"
-
-        # Stash any unstaged changes to avoid conflicts
-        git stash --include-untracked
-
-        # Pull the latest changes from the remote repository with rebase
-        git pull --rebase origin main
-
-        # Apply the stashed changes back
-        git stash pop || echo "No stashed changes to apply."
-
-        # Stage the renamed file and commit it
-        git add updates/${CURRENT_DATE}.md
-        git commit -m "Rename latest.md to ${CURRENT_DATE}.md" || echo "No changes to commit."
-
-        # Push the changes to the repository
-        git push origin main
-
-    # Step 5: Read the content of the renamed file and prepare it for Telegram
-    - name: Read the Markdown message content
-      id: read_message
-      run: |
-        NEW_FILE="updates/${CURRENT_DATE}.md"
-        if [ ! -f "$NEW_FILE" ]; then
-          echo "Error: Renamed file '$NEW_FILE' not found. Exiting."
-          exit 1
-        fi
-        echo "msg<<EOF" >> $GITHUB_OUTPUT
-        cat $NEW_FILE >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-
-    # Step 6: Send the content to the Telegram channel using the Telegram Bot API
-    - name: Send message to Telegram
+    # Step 3: Validate Telegram secrets
+    - name: Validate Telegram secrets
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -124,19 +72,87 @@ jobs:
 
         echo "Success: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are set."
 
-        MESSAGE="${{ steps.read_message.outputs.msg }}"
-        if [ -z "$MESSAGE" ]; then
-          echo "Error: Message content is empty. Exiting."
-          exit 1
+    # Step 4: Post each news item to Telegram
+    - name: Post each news item to Telegram
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        NEWS_DIR="updates"
+        POSTED_DIR="posted"
+
+        # Check if there are any news files
+        if [ -z "$(ls -A $NEWS_DIR/*.md 2>/dev/null)" ]; then
+          echo "No news files found. Exiting."
+          exit 0
         fi
 
-        RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-          -d chat_id="${TELEGRAM_CHAT_ID}" \
-          -d parse_mode="MarkdownV2" \
-          --data-urlencode text="$MESSAGE")
+        # Loop through all .md files in the updates directory
+        for FILE in $NEWS_DIR/*.md; do
+          echo "Processing file: $FILE"
 
-        if [[ "$RESPONSE" != *'"ok":true'* ]]; then
-          echo "Error: Failed to send message to Telegram. Response: $RESPONSE"
-          exit 1
-        fi
-        echo "Message successfully sent to Telegram."
+          # Read the content of the file
+          MESSAGE=$(cat "$FILE")
+
+          # Validate the message content
+          if [ -z "$MESSAGE" ]; then
+            echo "Error: File $FILE is empty. Skipping."
+            continue
+          fi
+
+          # Split the message into chunks if it exceeds 4,096 characters
+          CHUNK_SIZE=4096
+          while [ ${#MESSAGE} -gt 0 ]; do
+            CHUNK="${MESSAGE:0:$CHUNK_SIZE}"
+            MESSAGE="${MESSAGE:$CHUNK_SIZE}"
+
+            # Send the chunk to Telegram
+            RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d chat_id="${TELEGRAM_CHAT_ID}" \
+              -d parse_mode="MarkdownV2" \
+              --data-urlencode text="$CHUNK")
+
+            # Check if the message was sent successfully
+            if [[ "$RESPONSE" != *'"ok":true'* ]]; then
+              echo "Error: Failed to send message chunk for file $FILE. Response: $RESPONSE"
+              exit 1
+            fi
+          done
+
+          echo "Message successfully sent for file: $FILE"
+
+          # Add a timestamp to the filename and move the file to the posted directory
+          TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
+          BASENAME=$(basename "$FILE")
+          mv "$FILE" "$POSTED_DIR/${TIMESTAMP}_$BASENAME"
+        done
+
+        echo "All news items have been posted."
+
+    # Step 5: Commit and push processed files to the repository
+    - name: Commit and push processed files
+      run: |
+        GITHUB_USER_NAME="GitHub Actions Bot"
+        GITHUB_USER_EMAIL="actions@github.com"
+
+        # Configure Git user information
+        git config user.name "${GITHUB_USER_NAME}"
+        git config user.email "${GITHUB_USER_EMAIL}"
+
+        # Stash any unstaged changes to avoid conflicts
+        git stash --include-untracked
+
+        # Pull the latest changes from the remote repository with rebase
+        git pull --rebase origin main
+
+        # Apply the stashed changes back
+        git stash pop || echo "No stashed changes to apply."
+
+        # Stage all changes (e.g., moved files in the posted directory)
+        git add posted/
+
+        # Commit the changes
+        git commit -m "Move processed news files to posted directory" || echo "No changes to commit."
+
+        # Push the changes to the repository
+        git push origin main
