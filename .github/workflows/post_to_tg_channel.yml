@@ -46,7 +46,21 @@ jobs:
 
     - name: Ensure required directories exist
       run: |
-        mkdir -p updates posted
+        # Function to ensure a directory exists
+        ensure_directory() {
+          local dir_name=$1
+          mkdir -p "$dir_name"
+          if [ -d "$dir_name" ]; then
+            echo "Directory '$dir_name' is ready."
+          else
+            echo "Failed to create directory '$dir_name'. Exiting."
+            exit 1
+          fi
+        }
+
+        # Ensure required directories exist
+        ensure_directory "updates"
+        ensure_directory "posted"
 
     - name: Validate required Telegram secrets
       run: |
@@ -72,9 +86,6 @@ jobs:
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     - name: Post news files to Telegram
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
         # Define directories for news files and processed files
         NEWS_DIR="updates"
@@ -162,6 +173,9 @@ jobs:
           mv "$FILE" "$POSTED_DIR/${TIMESTAMP}_$BASENAME"
           echo "$(date) - Finished processing: $FILE"
         done
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     - name: Commit and push archived files
       run: |
