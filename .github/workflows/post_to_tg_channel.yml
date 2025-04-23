@@ -50,11 +50,23 @@ jobs:
 
     - name: Validate required Telegram secrets
       run: |
-        # Check if required secrets are set
-        [ -z "$TELEGRAM_BOT_TOKEN" ] && echo "TELEGRAM_BOT_TOKEN is not set. Exiting." && exit 1
-        [ -z "$TELEGRAM_CHAT_ID" ] && echo "TELEGRAM_CHAT_ID is not set. Exiting." && exit 1
+        # Function to check if a secret is set
+        check_secret() {
+          local secret_name=$1
+          local secret_value=$2
+          if [ -z "$secret_value" ]; then
+            echo "$secret_name is not set. Exiting."
+            exit 1
+          else
+            echo "$secret_name is set."
+          fi
+        }
 
-        echo "All required Telegram secrets are set."
+        # Validate secrets
+        check_secret "TELEGRAM_BOT_TOKEN" "$TELEGRAM_BOT_TOKEN"
+        check_secret "TELEGRAM_CHAT_ID" "$TELEGRAM_CHAT_ID"
+
+        echo "All required Telegram secrets are validated successfully."
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
