@@ -94,12 +94,12 @@ jobs:
         # Function to send an image to Telegram
         send_image() {
           local image_url=$1
-          echo "$(date) - Sending image: $image_url"
+          echo "Sending image: $image_url"
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendPhoto" \
             -d chat_id="$TELEGRAM_CHAT_ID" -d photo="$image_url")
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "$(date) - Failed to send image: $image_url"
-            echo "$RESP" | jq '.description'
+            echo "Failed to send image: $image_url"
+            echo "Response: $RESP"
             return 1
           }
         }
@@ -107,26 +107,26 @@ jobs:
         # Function to send a document to Telegram
         send_document() {
           local document_url=$1
-          echo "$(date) - Sending document: $document_url"
+          echo "Sending document: $document_url"
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
             -d chat_id="$TELEGRAM_CHAT_ID" -d document="$document_url")
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "$(date) - Failed to send document: $document_url"
-            echo "$RESP" | jq '.description'
+            echo "Failed to send document: $document_url"
+            echo "Response: $RESP"
             return 1
           }
         }
 
         # Function to send a text message to Telegram
-        send_text() {
-          local message=$1
-          echo "$(date) - Sending text message."
+        send_text_chunk() {
+          local chunk=$1
+          echo "Sending text chunk:"
+          echo "$chunk"
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-            -d chat_id="$TELEGRAM_CHAT_ID" -d parse_mode="MarkdownV2" \
-            --data-urlencode text="$message")
+            -d chat_id="$TELEGRAM_CHAT_ID" -d parse_mode="MarkdownV2" --data-urlencode text="$chunk")
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "$(date) - Failed to send text message."
-            echo "$RESP" | jq '.description'
+            echo "Failed to send text chunk."
+            echo "Response: $RESP"
             return 1
           }
         }
@@ -134,13 +134,13 @@ jobs:
         # Function to send inline buttons to Telegram
         send_buttons() {
           local buttons=$1
-          echo "$(date) - Sending inline buttons."
+          echo "Sending inline buttons."
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
             -d chat_id="$TELEGRAM_CHAT_ID" -d parse_mode="MarkdownV2" \
             --data-urlencode text="See more" -d "reply_markup=$buttons")
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "$(date) - Failed to send inline buttons."
-            echo "$RESP" | jq '.description'
+            echo "Failed to send buttons."
+            echo "Response: $RESP"
             return 1
           }
         }
@@ -149,41 +149,88 @@ jobs:
         FILES=$(find "$NEWS_DIR" -type f -name '*.md')
 
         # Exit if no Markdown files are found
-        [ -z "$FILES" ] && echo "$(date) - No new Markdown files to post." && exit 0
+        [ -z "$FILES" ] && echo "No Markdown files to post." && exit 0
 
         # Loop through each Markdown file
         for FILE in $FILES; do
-          echo "$(date) - Processing file: $FILE"
+          echo "Processing file: $FILE"
 
           # Read the content of the file
           CONTENT=$(cat "$FILE")
 
+          # Debugging: Log the content of the file
+          echo "Debug: Content of $FILE:"
+          echo "$CONTENT"
+
+          echo "Step Point: 1"
+          
           # Skip empty files
-          [ -z "$CONTENT" ] && echo "$(date) - Skipping empty file: $FILE" && continue
+          [ -z "$CONTENT" ] && echo "Skipping empty file: $FILE" && continue
+
+          echo "Step Point: 2"
 
           # Extract image URLs from Markdown (![](url))
-          IMAGE_URLS=$(grep -oP '!\[[^\]]*\]\(\K[^)]+(?=\))' "$FILE")
-          for IMG in $IMAGE_URLS; do
-            send_image "$IMG" || continue
-          done
+          IMAGE_URLS=$(grep -oE '!\[[^]]*\]\(([^)]+)\)' "$FILE" | sed -E 's/!\[[^]]*\]\(([^)]+)\)/\1/')
 
+          # Debugging: Log raw output of IMAGE_URLS
+          echo "Debug: Raw output of IMAGE_URLS:"
+          echo "$IMAGE_URLS"
+
+          echo "Step Point: 3"
+
+          # Check if there are any image URLs
+          if [ -n "$IMAGE_URLS" ]; then
+            echo "Debug: Extracted image URLs:"
+            echo "$IMAGE_URLS"
+            for IMG in $IMAGE_URLS; do
+              send_image "$IMG" || continue
+            done
+          else
+            echo "No image URLs found in $FILE."
+          fi
+          
+          echo "Step Point: 4"
+          
           # Extract document URLs (e.g., PDF, DOC, DOCX, PPTX)
           DOC_PATTERN='https?://[^ )]+\.(pdf|docx?|pptx?)'
           DOCUMENT_URLS=$(grep -oE "$DOC_PATTERN" "$FILE" | sort -u)
-          for DOC in $DOCUMENT_URLS; do
-            send_document "$DOC" || continue
-          done
+
+          # Debugging: Log raw output of DOCUMENT_URLS
+          echo "Debug: Raw output of DOCUMENT_URLS:"
+          echo "$DOCUMENT_URLS"
+
+          # Check if there are any document URLs
+          if [ -n "$DOCUMENT_URLS" ]; then
+            echo "Debug: Extracted document URLs:"
+            echo "$DOCUMENT_URLS"
+            for DOC in $DOCUMENT_URLS; do
+              send_document "$DOC" || continue
+            done
+          else
+            echo "No document URLs found in $FILE."
+          fi
+          
+          echo "Step Point: 5"
 
           # Remove image Markdown syntax from the content for cleaner text
           CLEANED_MSG=$(echo "$CONTENT" | sed -E 's/!\[[^\]]*\]\([^)]*\)//g')
 
-          # Split the cleaned message into chunks (max 4096 characters) and send each chunk
-          CHUNK_SIZE=4096
-          while [ ${#CLEANED_MSG} -gt 0 ]; do
-            CHUNK="${CLEANED_MSG:0:$CHUNK_SIZE}"
-            CLEANED_MSG="${CLEANED_MSG:$CHUNK_SIZE}"
-            send_text "$CHUNK" || continue
-          done
+          # Debugging: Log cleaned message content
+          echo "Debug: Cleaned message content:"
+          echo "$CLEANED_MSG"
+
+          # Check if there is any text content to send
+          if [ -n "$CLEANED_MSG" ]; then
+            # Split the cleaned message into chunks (max 4096 characters) and send each chunk
+            CHUNK_SIZE=4096
+            while [ ${#CLEANED_MSG} -gt 0 ]; do
+              CHUNK="${CLEANED_MSG:0:$CHUNK_SIZE}"
+              CLEANED_MSG="${CLEANED_MSG:$CHUNK_SIZE}"
+              send_text_chunk "$CHUNK" || continue
+            done
+          else
+            echo "No text content to send for $FILE."
+          fi
 
           # Send inline buttons (e.g., "Read More" link)
           BUTTONS='{"inline_keyboard":[[{"text":"Read More","url":"http://example.com"}]]}'
@@ -193,7 +240,7 @@ jobs:
           TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
           BASENAME=$(basename "$FILE")
           mv "$FILE" "$POSTED_DIR/${TIMESTAMP}_$BASENAME"
-          echo "$(date) - Finished processing: $FILE"
+          echo "Finished processing: $FILE"
         done
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
