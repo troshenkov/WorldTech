@@ -36,7 +36,7 @@ on:
 jobs:
   post_to_telegram:
     runs-on: ubuntu-latest  # Runs on the latest Ubuntu environment
-    environment: production # Specify the environment for deployment
+    environment: production # Environment with Telegram secrets
 
     steps:
     # Step 1: Checkout the repository
