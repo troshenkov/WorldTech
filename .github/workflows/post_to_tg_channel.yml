@@ -118,7 +118,7 @@ jobs:
             echo "$RESP" | grep -q '"ok":true' || {
               echo "$(date) - Failed to send image: $IMG"
               echo "$RESP" | jq '.description'
-              exit 1
+              continue
             }
           done
 
@@ -134,7 +134,7 @@ jobs:
             echo "$RESP" | grep -q '"ok":true' || {
               echo "$(date) - Failed to send document: $DOC"
               echo "$RESP" | jq '.description'
-              exit 1
+              continue
             }
           done
 
@@ -152,7 +152,7 @@ jobs:
             echo "$RESP" | grep -q '"ok":true' || {
               echo "$(date) - Failed to send message chunk."
               echo "$RESP" | jq '.description'
-              exit 1
+              continue
             }
           done
 
@@ -164,7 +164,7 @@ jobs:
           echo "$RESP" | grep -q '"ok":true' || {
             echo "$(date) - Failed to send inline button."
             echo "$RESP" | jq '.description'
-            exit 1
+            continue
           }
 
           # Archive the processed file by moving it to the posted directory with a timestamp
