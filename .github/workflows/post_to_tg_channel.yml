@@ -151,8 +151,8 @@ jobs:
         # Stage all changes (e.g., moved files in the posted directory)
         git add posted/
 
-        # Commit the changes
-        git commit -m "Move processed news files to posted directory" || echo "No changes to commit."
+        # Commit the changes with the current date in the message
+        git commit -m "Move processed news files to posted directory on $(date +'%Y-%m-%d')" || echo "No changes to commit."
 
         # Push the changes to the repository
         git push origin main
