@@ -4,24 +4,25 @@
 # Workflow Name: Post News to Telegram
 #
 # Description:
-#   This GitHub Actions workflow posts each Markdown news file in the `updates/` directory
-#   to a Telegram channel. Messages are split if longer than 4,096 characters.
-#   If the Markdown includes image URLs or document links, the media is sent separately before the text.
-#   After posting, the files are moved to the `posted/` directory.
+#   Posts Markdown news files from the `updates/` directory to a Telegram channel.
+#   Messages longer than 4096 characters are split into chunks.
+#   Markdown images (![](url)) are sent as media before text.
+#   Supported documents (PDF, DOC, etc.) are also sent prior to text.
+#   Inline buttons are included with each post.
+#   After sending, files are archived in the `posted/` directory.
 #
-# Improvements:
-#   - Splits messages over 4,096 chars into chunks.
-#   - Sends images (Markdown ![](url)) before text.
-#   - Sends documents (PDF, DOC, etc.) if included in Markdown.
-#   - Sends inline buttons with each post.
-#   - Archives processed files to avoid duplicates.
-#   - Improved error handling with more specific error reporting.
-#   - Added manual trigger for the workflow.
-#   - Enforces Telegram API limits.
+# Features:
+#   - Handles image/document posting before text.
+#   - Splits long messages to meet Telegram limits.
+#   - Adds inline buttons with a "Read More" link.
+#   - Skips empty files gracefully.
+#   - Provides specific error reporting on failures.
+#   - Avoids reposting by archiving processed files.
+#   - Includes manual trigger and daily cron.
 #
 # Required Secrets:
-#   - TELEGRAM_BOT_TOKEN: Token from @BotFather to send messages via Telegram Bot API.
-#   - TELEGRAM_CHAT_ID: Telegram chat ID where the message will be sent.
+#   - TELEGRAM_BOT_TOKEN: Telegram Bot API token.
+#   - TELEGRAM_CHAT_ID: Target Telegram chat ID.
 #
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
 # Last updated: 2025-04-22
@@ -29,12 +30,10 @@
 
 name: Post News to Telegram
 
-# Trigger the workflow on a schedule or manually
 on:
   schedule:
-    # Run the workflow every day at 8 AM UTC
-    - cron: '0 8 * * *'
-  workflow_dispatch:  # Allow manual triggering of the workflow
+    - cron: '0 8 * * *'  # Every day at 8 AM UTC
+  workflow_dispatch:     # Allow manual triggering of the workflow
 
 jobs:
   post_to_telegram:
@@ -42,138 +41,114 @@ jobs:
     environment: production # Environment with Telegram secrets
 
     steps:
-    # Step 1: Checkout the repository
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Ensure required directories exist
-    - name: Prepare directories
+    - name: Ensure required directories exist
       run: |
-        mkdir -p updates
-        mkdir -p posted
+        mkdir -p updates posted
 
-    # Step 3: Validate Telegram secrets
-    - name: Validate Telegram secrets
+    - name: Validate required Telegram secrets
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
-        ERRORS=""
+        [[ -z "$TELEGRAM_BOT_TOKEN" ]] && echo "TELEGRAM_BOT_TOKEN is not set." && exit 1
+        [[ -z "$TELEGRAM_CHAT_ID" ]] && echo "TELEGRAM_CHAT_ID is not set." && exit 1
 
-        if [ -z "${TELEGRAM_BOT_TOKEN}" ]; then
-          ERRORS+="Error: TELEGRAM_BOT_TOKEN is not set. Please configure the secret and try again.\n"
-        fi
-
-        if [ -z "${TELEGRAM_CHAT_ID}" ]; then
-          ERRORS+="Error: TELEGRAM_CHAT_ID is not set. Please configure the secret and try again.\n"
-        fi
-
-        if [ -n "$ERRORS" ]; then
-          echo -e "$ERRORS"
-          exit 1
-        fi
-
-    # Step 4: Post each news item to Telegram
-    - name: Post each news item to Telegram
+    - name: Post news files to Telegram
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       run: |
+        # Define directories for news files and processed files
         NEWS_DIR="updates"
         POSTED_DIR="posted"
 
-        if [ -z "$(ls -A $NEWS_DIR/*.md 2>/dev/null)" ]; then
-          echo "$(date) - No news files found."
-          exit 0
-        fi
+        # Find all Markdown files in the updates directory
+        FILES=$(find "$NEWS_DIR" -type f -name '*.md')
 
-        for FILE in $NEWS_DIR/*.md; do
+        # Exit if no Markdown files are found
+        [ -z "$FILES" ] && echo "$(date) - No new Markdown files to post." && exit 0
+
+        # Loop through each Markdown file
+        for FILE in $FILES; do
           echo "$(date) - Processing file: $FILE"
 
-          MESSAGE=$(cat "$FILE")
+          # Read the content of the file
+          CONTENT=$(cat "$FILE")
 
-          if [ -z "$MESSAGE" ]; then
-            echo "$(date) - Warning: $FILE is empty. Skipping."
-            continue
-          fi
+          # Skip empty files
+          [ -z "$CONTENT" ] && echo "$(date) - Skipping empty file: $FILE" && continue
 
-          # Extract image URLs
-          IMAGE_URLS=$(grep -oP '!\[.*?\]\(\K[^\)]+(?=\))' "$FILE")
+          # Extract image URLs from Markdown (![](url))
+          IMAGE_URLS=$(grep -oP '!\[[^\]]*\]\(\K[^)]+(?=\))' "$FILE")
 
-          # Send each image (up to 10 MB limit for remote URLs assumed)
-          for IMAGE_URL in $IMAGE_URLS; do
-            echo "$(date) - Sending image: $IMAGE_URL"
-            RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto" \
-              -d chat_id="${TELEGRAM_CHAT_ID}" \
-              -d photo="$IMAGE_URL")
-            if [[ "$RESPONSE" != *'"ok":true'* ]]; then
-              ERROR_MSG=$(echo "$RESPONSE" | jq '.description')
-              echo "$(date) - Failed to send image: $IMAGE_URL. Response: $ERROR_MSG"
+          # Send each image to Telegram
+          for IMG in $IMAGE_URLS; do
+            echo "$(date) - Sending image: $IMG"
+            RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendPhoto" \
+              -d chat_id="$TELEGRAM_CHAT_ID" -d photo="$IMG")
+            echo "$RESP" | grep -q '"ok":true' || {
+              echo "$(date) - Failed to send image: $IMG"
+              echo "$RESP" | jq '.description'
               exit 1
-            fi
+            }
           done
 
-          # Extract document URLs (PDF, DOC, DOCX, PPTX)
-          DOCUMENT_URLS=$(grep -oP 'https?://[^\s]+\.pdf|doc|docx|pptx' "$FILE")
+          # Extract document URLs (e.g., PDF, DOC, DOCX, PPTX)
+          DOC_PATTERN='https?://[^ )]+\.(pdf|docx?|pptx?)'
+          DOCUMENT_URLS=$(grep -oE "$DOC_PATTERN" "$FILE" | sort -u)
 
-          # Send documents
-          for DOCUMENT_URL in $DOCUMENT_URLS; do
-            echo "$(date) - Sending document: $DOCUMENT_URL"
-            RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
-              -d chat_id="${TELEGRAM_CHAT_ID}" \
-              -d document="$DOCUMENT_URL")
-            if [[ "$RESPONSE" != *'"ok":true'* ]]; then
-              ERROR_MSG=$(echo "$RESPONSE" | jq '.description')
-              echo "$(date) - Failed to send document: $DOCUMENT_URL. Response: $ERROR_MSG"
+          # Send each document to Telegram
+          for DOC in $DOCUMENT_URLS; do
+            echo "$(date) - Sending document: $DOC"
+            RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
+              -d chat_id="$TELEGRAM_CHAT_ID" -d document="$DOC")
+            echo "$RESP" | grep -q '"ok":true' || {
+              echo "$(date) - Failed to send document: $DOC"
+              echo "$RESP" | jq '.description'
               exit 1
-            fi
+            }
           done
 
-          # Remove image markdown from message
-          CLEANED_MSG=$(echo "$MESSAGE" | sed -E 's/!\[.*?\]\(.*?\)//g')
+          # Remove image Markdown syntax from the content for cleaner text
+          CLEANED_MSG=$(echo "$CONTENT" | sed -E 's/!\[[^\]]*\]\([^)]*\)//g')
 
-          # Send message in chunks of max 4096 characters (Telegram limit)
+          # Split the cleaned message into chunks (max 4096 characters) and send each chunk
           CHUNK_SIZE=4096
           while [ ${#CLEANED_MSG} -gt 0 ]; do
             CHUNK="${CLEANED_MSG:0:$CHUNK_SIZE}"
             CLEANED_MSG="${CLEANED_MSG:$CHUNK_SIZE}"
-            RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-              -d chat_id="${TELEGRAM_CHAT_ID}" \
-              -d parse_mode="MarkdownV2" \
+            RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              -d chat_id="$TELEGRAM_CHAT_ID" -d parse_mode="MarkdownV2" \
               --data-urlencode text="$CHUNK")
-            if [[ "$RESPONSE" != *'"ok":true'* ]]; then
-              ERROR_MSG=$(echo "$RESPONSE" | jq '.description')
-              echo "$(date) - Failed to send message chunk. Response: $ERROR_MSG"
+            echo "$RESP" | grep -q '"ok":true' || {
+              echo "$(date) - Failed to send message chunk."
+              echo "$RESP" | jq '.description'
               exit 1
-            fi
+            }
           done
 
-          # Send inline buttons (example link to full article)
-          INLINE_BUTTONS='{"inline_keyboard":[[{"text":"Read More","url":"http://example.com"}]]}'
-          RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TELEGRAM_CHAT_ID}" \
-            -d parse_mode="MarkdownV2" \
-            --data-urlencode text="See more" \
-            -d "reply_markup=$INLINE_BUTTONS")
-
-          if [[ "$RESPONSE" != *'"ok":true'* ]]; then
-            ERROR_MSG=$(echo "$RESPONSE" | jq '.description')
-            echo "$(date) - Failed to send inline button. Response: $ERROR_MSG"
+          # Send inline buttons (e.g., "Read More" link)
+          BUTTONS='{"inline_keyboard":[[{"text":"Read More","url":"http://example.com"}]]}'
+          RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+            -d chat_id="$TELEGRAM_CHAT_ID" -d parse_mode="MarkdownV2" \
+            --data-urlencode text="See more" -d "reply_markup=$BUTTONS")
+          echo "$RESP" | grep -q '"ok":true' || {
+            echo "$(date) - Failed to send inline button."
+            echo "$RESP" | jq '.description'
             exit 1
-          fi
+          }
 
-          echo "$(date) - Finished sending: $FILE"
-
-          # Move the file to the posted directory
+          # Archive the processed file by moving it to the posted directory with a timestamp
           TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
           BASENAME=$(basename "$FILE")
           mv "$FILE" "$POSTED_DIR/${TIMESTAMP}_$BASENAME"
+          echo "$(date) - Finished processing: $FILE"
         done
 
-        echo "All news items have been posted."
-
-    # Step 5: Commit and push processed files to the repository
-    - name: Commit and push processed files
+    - name: Commit and push archived files
       run: |
         GITHUB_USER_NAME="GitHub Actions Bot"
         GITHUB_USER_EMAIL="actions@github.com"
