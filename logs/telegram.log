@@ -44,3 +44,8 @@ Sending text chunk:
 {"ok":true,"result":{"message_id":62,"sender_chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"date":1745529665,"text":"NEW POST 11","has_protected_content":true}}
 Sending inline buttons.
 {"ok":true,"result":{"message_id":63,"sender_chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"date":1745529666,"text":"See more","reply_markup":{"inline_keyboard":[[{"text":"Read More","url":"http://example.com/"}]]},"has_protected_content":true}}
+Sending text chunk:
+** NEW POST 11  **
+{"ok":true,"result":{"message_id":64,"sender_chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"date":1745534328,"text":"NEW POST 11","has_protected_content":true}}
+Sending inline buttons.
+{"ok":true,"result":{"message_id":65,"sender_chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"date":1745534328,"text":"See more","reply_markup":{"inline_keyboard":[[{"text":"Read More","url":"http://example.com/"}]]},"has_protected_content":true}}
