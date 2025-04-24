@@ -1,4 +1,31 @@
 #!/bin/bash
+# ==================================================================================================
+# File: scripts/process_markdown_files.sh
+#
+# Description:
+#   This script processes Markdown files from the `updates/` directory and posts their content to
+#   a Telegram channel. It handles images, documents, and text content, ensuring compliance with
+#   Telegram's message size limits. After posting, files are archived in the `posted/` directory.
+#
+# Features:
+#   - Posts images (![](url)) and documents (PDF, DOC, etc.) before text content.
+#   - Splits long messages into chunks (max 4096 characters) for Telegram compatibility.
+#   - Adds inline buttons with a "Read More" link to each post.
+#   - Skips empty files gracefully and logs all actions for debugging.
+#   - Archives processed files to avoid reposting.
+#
+# Environment Variables:
+#   - TELEGRAM_BOT_TOKEN: Telegram Bot API token.
+#   - TELEGRAM_CHAT_ID: Target Telegram chat ID.
+#
+# Directories:
+#   - `updates/`: Input directory for Markdown files to be posted.
+#   - `posted/`: Directory for archived files after processing.
+#   - `logs/`: Directory for log files generated during the script execution.
+#
+# Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
+# Last updated: 2025-04-24
+# ==================================================================================================
 
 # Define the ensure_directory function
 ensure_directory() {
