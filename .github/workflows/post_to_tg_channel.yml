@@ -225,7 +225,7 @@ jobs:
       with:
         name: telegram-logs
         path: logs/
-        retention-days: 7  # Correctly indented
+        retention-days: 7
 
 # ----------------------------------------
 # Step 5: Commit and push changes
