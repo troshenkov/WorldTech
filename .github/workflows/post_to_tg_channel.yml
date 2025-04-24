@@ -83,10 +83,12 @@ jobs:
 # ----------------------------------------
 # Step 5: Commit and push changes
 # ----------------------------------------
+
+    # Commit and push archived files
     - name: Commit and push archived files
       run: |
-        git config user.name "GitHub Actions Bot"
-        git config user.email "actions@github.com"
+        chmod +x scripts/git_setup.sh
+        scripts/git_setup.sh
         git stash --include-untracked
         git pull --rebase --no-edit origin main
         git stash pop || echo "No stashed changes to apply."
@@ -94,10 +96,11 @@ jobs:
         git commit -m "Move processed news files to posted directory on $(date +'%Y-%m-%d')" || echo "No changes to commit."
         git push origin main
 
+    # Commit and push logs
     - name: Commit and push logs
       run: |
-        git config user.name "GitHub Actions Bot"
-        git config user.email "actions@github.com"
+        chmod +x scripts/git_setup.sh
+        scripts/git_setup.sh
         git add logs/
         git commit -m "Add Telegram logs on $(date +'%Y-%m-%d')" || echo "No log changes to commit."
         git push origin main
