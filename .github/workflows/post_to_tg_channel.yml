@@ -53,20 +53,8 @@ jobs:
 # ----------------------------------------
     - name: Validate required Telegram secrets
       run: |
-        check_secret() {
-          local secret_name=$1
-          local secret_value=$2
-          if [ -z "$secret_value" ]; then
-            echo "$secret_name is not set. Exiting."
-            exit 1
-          else
-            echo "$secret_name is set."
-          fi
-        }
-
-        check_secret "TELEGRAM_BOT_TOKEN" "$TELEGRAM_BOT_TOKEN"
-        check_secret "TELEGRAM_CHAT_ID" "$TELEGRAM_CHAT_ID"
-        echo "All required Telegram secrets are validated successfully."
+        chmod +x scripts/validate_secrets.sh
+        scripts/validate_secrets.sh
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
