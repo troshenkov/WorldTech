@@ -8,6 +8,13 @@
 #   to a Telegram channel. It handles images, documents, and text content, ensuring compliance with
 #   Telegram's message size limits. After posting, files are archived in the `posted/` directory.
 #
+# Workflow Steps:
+#   1. Checkout the repository.
+#   2. Validate required secrets for Telegram.
+#   3. Process Markdown files and post their content to Telegram.
+#   4. Upload logs as GitHub Actions artifacts for debugging.
+#   5. Commit and push archived files and logs back to the repository.
+#
 # Features:
 #   - Posts images (![](url)) and documents (PDF, DOC, etc.) before text content.
 #   - Splits long messages into chunks (max 4096 characters) for Telegram compatibility.
@@ -15,7 +22,7 @@
 #   - Skips empty files gracefully and logs all actions for debugging.
 #   - Archives processed files to avoid reposting.
 #   - Saves detailed logs to GitHub Actions artifacts for inspection.
-#   - Commits and pushes archived files back to the repository.
+#   - Commits and pushes both archived files and logs back to the repository.
 #
 # Triggers:
 #   - Scheduled daily at 8 AM UTC.
@@ -25,8 +32,13 @@
 #   - TELEGRAM_BOT_TOKEN: Telegram Bot API token.
 #   - TELEGRAM_CHAT_ID: Target Telegram chat ID.
 #
+# Scripts Used:
+#   - `scripts/validate_secrets.sh`: Validates required secrets for Telegram.
+#   - `scripts/process_markdown_files.sh`: Processes Markdown files and posts to Telegram.
+#   - `scripts/git_setup.sh`: Configures Git for committing and pushing changes.
+#
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
-# Last updated: 2025-04-23
+# Last Updated: 2025-04-24
 # ==================================================================================================
 
 name: Post News to Telegram
