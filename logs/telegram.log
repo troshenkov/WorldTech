@@ -7,3 +7,12 @@ Sending inline buttons.
 Finished processing: updates/2025-04-22.md
 Processing file: updates/latest.md
 Skipping empty file: updates/latest.md
+Processing file: updates/2025-04-22.md
+Sending text chunk:
+** NEW POST 11  **
+{"ok":true,"result":{"message_id":54,"sender_chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"date":1745495299,"text":"NEW POST 11","has_protected_content":true}}
+Sending inline buttons.
+{"ok":true,"result":{"message_id":55,"sender_chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"chat":{"id":-1002094642696,"title":"World Tech","username":"worldtechcannel","type":"channel"},"date":1745495300,"text":"See more","reply_markup":{"inline_keyboard":[[{"text":"Read More","url":"http://example.com/"}]]},"has_protected_content":true}}
+Finished processing: updates/2025-04-22.md
+Processing file: updates/latest.md
+Skipping empty file: updates/latest.md
