@@ -38,16 +38,21 @@ on:
 
 jobs:
   post_to_telegram:
-    runs-on: ubuntu-latest  # Runs on the latest Ubuntu environment
-    environment: production # Environment with Telegram secrets
+    runs-on: ubuntu-latest
+    environment: production
 
     steps:
+# ----------------------------------------
+# Step 1: Checkout the repository
+# ----------------------------------------
     - name: Checkout code
       uses: actions/checkout@v3
 
+# ----------------------------------------
+# Step 2: Validate required secrets
+# ----------------------------------------
     - name: Validate required Telegram secrets
       run: |
-        # Function to check if a secret is set
         check_secret() {
           local secret_name=$1
           local secret_value=$2
@@ -59,15 +64,16 @@ jobs:
           fi
         }
 
-        # Validate secrets
         check_secret "TELEGRAM_BOT_TOKEN" "$TELEGRAM_BOT_TOKEN"
         check_secret "TELEGRAM_CHAT_ID" "$TELEGRAM_CHAT_ID"
-
         echo "All required Telegram secrets are validated successfully."
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
+# ----------------------------------------
+# Step 3: Process Markdown files
+# ----------------------------------------
     - name: Post news files to Telegram
       run: |
         # Define the ensure_directory function
@@ -211,54 +217,35 @@ jobs:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
+# ----------------------------------------
+# Step 4: Upload logs
+# ----------------------------------------
     - name: Upload logs
       uses: actions/upload-artifact@v4
       with:
         name: telegram-logs
         path: logs/
+        retention-days: 7  # Correctly indented
 
+# ----------------------------------------
+# Step 5: Commit and push changes
+# ----------------------------------------
     - name: Commit and push archived files
       run: |
-        GITHUB_USER_NAME="GitHub Actions Bot"
-        GITHUB_USER_EMAIL="actions@github.com"
-
-        # Configure Git user information
-        git config user.name "${GITHUB_USER_NAME}"
-        git config user.email "${GITHUB_USER_EMAIL}"
-
-        # Stash any unstaged changes to avoid conflicts
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
         git stash --include-untracked
-
-        # Pull the latest changes from the remote repository with rebase
-        git pull --rebase origin main
-
-        # Apply the stashed changes back
+        git pull --rebase --no-edit origin main
         git stash pop || echo "No stashed changes to apply."
-
-        # Stage all changes (e.g., moved files in the posted directory)
         git add posted/
-
-        # Commit the changes with the current date in the message
         git commit -m "Move processed news files to posted directory on $(date +'%Y-%m-%d')" || echo "No changes to commit."
-
-        # Push the changes to the repository
         git push origin main
 
     - name: Commit and push logs
       run: |
-        GITHUB_USER_NAME="GitHub Actions Bot"
-        GITHUB_USER_EMAIL="actions@github.com"
-
-        # Configure Git user information
-        git config user.name "${GITHUB_USER_NAME}"
-        git config user.email "${GITHUB_USER_EMAIL}"
-
-        # Stage all log files
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
         git add logs/
-
-        # Commit the logs with the current date in the message
         git commit -m "Add Telegram logs on $(date +'%Y-%m-%d')" || echo "No log changes to commit."
-
-        # Push the log changes to the repository
         git push origin main
 
