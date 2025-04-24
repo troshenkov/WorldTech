@@ -36,7 +36,7 @@ ensure_directory() {
   else
     echo "Failed to create directory '$dir_name'. Exiting."
     exit 1
-  }
+  fi
 }
 
 # Define the send_image function
