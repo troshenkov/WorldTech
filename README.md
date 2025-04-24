@@ -40,18 +40,17 @@ The workflow is defined in `.github/workflows/post_to_tg_channel.yml` and includ
 ---
 
 ## Directory Structure
-
 ```text
 WorldTech/
-├── updates/                        # Input directory for Markdown files to be posted
-├── posted/                         # Directory for archived files after processing
-├── logs/                           # Directory for log files generated during the workflow
+├── updates/                # Input directory for Markdown files to be posted
+├── posted/                 # Directory for archived files after processing
+├── logs/                   # Directory for log files generated during the workflow
 ├── .github/
 │   ├── workflows/
 │   │   ├── post_to_tg_channel.yml  # GitHub Actions workflow definition
-│   │   ├── ROADMAP.md              # Roadmap for planned improvements
-├── README.md                       # Project documentation
-├── LICENSE                         # License information for the project
+│   │   ├── ROADMAP.md             # Roadmap for planned improvements
+├── README.md               # Project documentation
+├── LICENSE                 # License information for the project
 ```
 ---
 
