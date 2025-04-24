@@ -5,24 +5,15 @@
 #
 # Description:
 #   This workflow automates the process of posting Markdown news files from the `updates/` directory
-#   to a Telegram channel. It handles images, documents, and text content, ensuring compliance with
-#   Telegram's message size limits. After posting, files are archived in the `posted/` directory.
+#   to a Telegram channel. It delegates specific tasks, such as secret validation and Markdown file
+#   processing, to external scripts for modularity and maintainability.
 #
 # Workflow Steps:
 #   1. Checkout the repository.
-#   2. Validate required secrets for Telegram.
-#   3. Process Markdown files and post their content to Telegram.
+#   2. Validate required secrets for Telegram using `scripts/validate_secrets.sh`.
+#   3. Process Markdown files and post their content to Telegram using `scripts/process_markdown_files.sh`.
 #   4. Upload logs as GitHub Actions artifacts for debugging.
 #   5. Commit and push archived files and logs back to the repository.
-#
-# Features:
-#   - Posts images (![](url)) and documents (PDF, DOC, etc.) before text content.
-#   - Splits long messages into chunks (max 4096 characters) for Telegram compatibility.
-#   - Adds inline buttons with a "Read More" link to each post.
-#   - Skips empty files gracefully and logs all actions for debugging.
-#   - Archives processed files to avoid reposting.
-#   - Saves detailed logs to GitHub Actions artifacts for inspection.
-#   - Commits and pushes both archived files and logs back to the repository.
 #
 # Triggers:
 #   - Scheduled daily at 8 AM UTC.

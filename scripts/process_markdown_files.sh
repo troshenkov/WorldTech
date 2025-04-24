@@ -3,15 +3,15 @@
 # File: scripts/process_markdown_files.sh
 #
 # Description:
-#   This script processes Markdown files from the `updates/` directory and posts their content to
-#   a Telegram channel. It handles images, documents, and text content, ensuring compliance with
-#   Telegram's message size limits. After posting, files are archived in the `posted/` directory.
+#   This script is part of the `Post News to Telegram` workflow defined in
+#   `.github/workflows/post_to_tg_channel.yml`. It processes Markdown files from the `updates/`
+#   directory and posts their content to a Telegram channel. After posting, files are archived in
+#   the `posted/` directory.
 #
 # Features:
 #   - Posts images (![](url)) and documents (PDF, DOC, etc.) before text content.
 #   - Splits long messages into chunks (max 4096 characters) for Telegram compatibility.
 #   - Adds inline buttons with a "Read More" link to each post.
-#   - Skips empty files gracefully and logs all actions for debugging.
 #   - Archives processed files to avoid reposting.
 #
 # Environment Variables:
@@ -24,7 +24,7 @@
 #   - `logs/`: Directory for log files generated during the script execution.
 #
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
-# Last updated: 2025-04-24
+# Last Updated: 2025-04-24
 # ==================================================================================================
 
 # Define the ensure_directory function
@@ -36,7 +36,7 @@ ensure_directory() {
   else
     echo "Failed to create directory '$dir_name'. Exiting."
     exit 1
-  fi
+  }
 }
 
 # Define the send_image function
