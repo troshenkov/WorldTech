@@ -4,28 +4,29 @@
 # Workflow Name: Post News to Telegram
 #
 # Description:
-#   Posts Markdown news files from the `updates/` directory to a Telegram channel.
-#   Messages longer than 4096 characters are split into chunks.
-#   Markdown images (![](url)) are sent as media before text.
-#   Supported documents (PDF, DOC, etc.) are also sent prior to text.
-#   Inline buttons are included with each post.
-#   After sending, files are archived in the `posted/` directory.
+#   This workflow automates the process of posting Markdown news files from the `updates/` directory
+#   to a Telegram channel. It handles images, documents, and text content, ensuring compliance with
+#   Telegram's message size limits. After posting, files are archived in the `posted/` directory.
 #
 # Features:
-#   - Handles image/document posting before text.
-#   - Splits long messages to meet Telegram limits.
-#   - Adds inline buttons with a "Read More" link.
-#   - Skips empty files gracefully.
-#   - Provides specific error reporting on failures.
-#   - Avoids reposting by archiving processed files.
-#   - Includes manual trigger and daily cron.
+#   - Posts images (![](url)) and documents (PDF, DOC, etc.) before text content.
+#   - Splits long messages into chunks (max 4096 characters) for Telegram compatibility.
+#   - Adds inline buttons with a "Read More" link to each post.
+#   - Skips empty files gracefully and logs all actions for debugging.
+#   - Archives processed files to avoid reposting.
+#   - Saves detailed logs to GitHub Actions artifacts for inspection.
+#   - Commits and pushes archived files back to the repository.
+#
+# Triggers:
+#   - Scheduled daily at 8 AM UTC.
+#   - Manual trigger via workflow dispatch.
 #
 # Required Secrets:
 #   - TELEGRAM_BOT_TOKEN: Telegram Bot API token.
 #   - TELEGRAM_CHAT_ID: Target Telegram chat ID.
 #
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
-# Last updated: 2025-04-22
+# Last updated: 2025-04-23
 # ==================================================================================================
 
 name: Post News to Telegram
@@ -50,7 +51,7 @@ jobs:
         ensure_directory() {
           local dir_name=$1
           mkdir -p "$dir_name"
-          if [ -d "$dir_name" ]; then
+          if [ -d "$dir_name"; then
             echo "Directory '$dir_name' is ready."
           else
             echo "Failed to create directory '$dir_name'. Exiting."
@@ -61,6 +62,7 @@ jobs:
         # Ensure required directories exist
         ensure_directory "updates"
         ensure_directory "posted"
+        ensure_directory "logs"
 
     - name: Validate required Telegram secrets
       run: |
@@ -68,7 +70,7 @@ jobs:
         check_secret() {
           local secret_name=$1
           local secret_value=$2
-          if [ -z "$secret_value" ]; then
+          if [ -z "$secret_value"; then
             echo "$secret_name is not set. Exiting."
             exit 1
           else
@@ -90,16 +92,19 @@ jobs:
         # Define directories for news files and processed files
         NEWS_DIR="updates"
         POSTED_DIR="posted"
+        LOG_DIR="logs"
+
+        ensure_directory "$LOG_DIR"
 
         # Function to send an image to Telegram
         send_image() {
           local image_url=$1
-          echo "Sending image: $image_url"
+          echo "Sending image: $image_url" >> "$LOG_DIR/telegram.log"
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendPhoto" \
             -d chat_id="$TELEGRAM_CHAT_ID" -d photo="$image_url")
+          echo "$RESP" >> "$LOG_DIR/telegram.log"
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "Failed to send image: $image_url"
-            echo "Response: $RESP"
+            echo "Failed to send image: $image_url" >> "$LOG_DIR/telegram.log"
             return 1
           }
         }
@@ -107,12 +112,12 @@ jobs:
         # Function to send a document to Telegram
         send_document() {
           local document_url=$1
-          echo "Sending document: $document_url"
+          echo "Sending document: $document_url" >> "$LOG_DIR/telegram.log"
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument" \
             -d chat_id="$TELEGRAM_CHAT_ID" -d document="$document_url")
+          echo "$RESP" >> "$LOG_DIR/telegram.log"
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "Failed to send document: $document_url"
-            echo "Response: $RESP"
+            echo "Failed to send document: $document_url" >> "$LOG_DIR/telegram.log"
             return 1
           }
         }
@@ -120,13 +125,13 @@ jobs:
         # Function to send a text message to Telegram
         send_text_chunk() {
           local chunk=$1
-          echo "Sending text chunk:"
-          echo "$chunk"
+          echo "Sending text chunk:" >> "$LOG_DIR/telegram.log"
+          echo "$chunk" >> "$LOG_DIR/telegram.log"
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
             -d chat_id="$TELEGRAM_CHAT_ID" -d parse_mode="MarkdownV2" --data-urlencode text="$chunk")
+          echo "$RESP" >> "$LOG_DIR/telegram.log"
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "Failed to send text chunk."
-            echo "Response: $RESP"
+            echo "Failed to send text chunk." >> "$LOG_DIR/telegram.log"
             return 1
           }
         }
@@ -134,13 +139,13 @@ jobs:
         # Function to send inline buttons to Telegram
         send_buttons() {
           local buttons=$1
-          echo "Sending inline buttons."
+          echo "Sending inline buttons." >> "$LOG_DIR/telegram.log"
           RESP=$(curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
             -d chat_id="$TELEGRAM_CHAT_ID" -d parse_mode="MarkdownV2" \
             --data-urlencode text="See more" -d "reply_markup=$buttons")
+          echo "$RESP" >> "$LOG_DIR/telegram.log"
           echo "$RESP" | grep -q '"ok":true' || {
-            echo "Failed to send buttons."
-            echo "Response: $RESP"
+            echo "Failed to send buttons." >> "$LOG_DIR/telegram.log"
             return 1
           }
         }
@@ -153,74 +158,40 @@ jobs:
 
         # Loop through each Markdown file
         for FILE in $FILES; do
-          echo "Processing file: $FILE"
+          echo "Processing file: $FILE" >> "$LOG_DIR/telegram.log"
 
           # Read the content of the file
           CONTENT=$(cat "$FILE")
 
-          # Debugging: Log the content of the file
-          echo "Debug: Content of $FILE:"
-          echo "$CONTENT"
-
-          echo "Step Point: 1"
-          
           # Skip empty files
-          [ -z "$CONTENT" ] && echo "Skipping empty file: $FILE" && continue
-
-          echo "Step Point: 2"
+          [ -z "$CONTENT" ] && echo "Skipping empty file: $FILE" >> "$LOG_DIR/telegram.log" && continue
 
           # Extract image URLs from Markdown (![](url))
           IMAGE_URLS=$(grep -oE '!\[[^]]*\]\(([^)]+)\)' "$FILE" | sed -E 's/!\[[^]]*\]\(([^)]+)\)/\1/')
 
-          # Debugging: Log raw output of IMAGE_URLS
-          echo "Debug: Raw output of IMAGE_URLS:"
-          echo "$IMAGE_URLS"
-
-          echo "Step Point: 3"
-
           # Check if there are any image URLs
-          if [ -n "$IMAGE_URLS" ]; then
-            echo "Debug: Extracted image URLs:"
-            echo "$IMAGE_URLS"
+          if [ -n "$IMAGE_URLS"; then
             for IMG in $IMAGE_URLS; do
               send_image "$IMG" || continue
             done
-          else
-            echo "No image URLs found in $FILE."
           fi
-          
-          echo "Step Point: 4"
-          
+
           # Extract document URLs (e.g., PDF, DOC, DOCX, PPTX)
           DOC_PATTERN='https?://[^ )]+\.(pdf|docx?|pptx?)'
           DOCUMENT_URLS=$(grep -oE "$DOC_PATTERN" "$FILE" | sort -u)
 
-          # Debugging: Log raw output of DOCUMENT_URLS
-          echo "Debug: Raw output of DOCUMENT_URLS:"
-          echo "$DOCUMENT_URLS"
-
           # Check if there are any document URLs
-          if [ -n "$DOCUMENT_URLS" ]; then
-            echo "Debug: Extracted document URLs:"
-            echo "$DOCUMENT_URLS"
+          if [ -n "$DOCUMENT_URLS"; then
             for DOC in $DOCUMENT_URLS; do
               send_document "$DOC" || continue
             done
-          else
-            echo "No document URLs found in $FILE."
           fi
-          
-          echo "Step Point: 5"
 
           # Remove image Markdown syntax from the content for cleaner text
           CLEANED_MSG=$(echo "$CONTENT" | sed -E 's/!\[[^\]]*\]\([^)]*\)//g')
 
-          # Debugging: Log cleaned message content
-          echo "Debug: Cleaned message content:"
-          echo "$CLEANED_MSG"
-
           # Check if there is any text content to send
-          if [ -n "$CLEANED_MSG" ]; then
+          if [ -n "$CLEANED_MSG"; then
             # Split the cleaned message into chunks (max 4096 characters) and send each chunk
             CHUNK_SIZE=4096
             while [ ${#CLEANED_MSG} -gt 0 ]; do
@@ -228,8 +199,6 @@ jobs:
               CLEANED_MSG="${CLEANED_MSG:$CHUNK_SIZE}"
               send_text_chunk "$CHUNK" || continue
             done
-          else
-            echo "No text content to send for $FILE."
           fi
 
           # Send inline buttons (e.g., "Read More" link)
@@ -240,11 +209,17 @@ jobs:
           TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
           BASENAME=$(basename "$FILE")
           mv "$FILE" "$POSTED_DIR/${TIMESTAMP}_$BASENAME"
-          echo "Finished processing: $FILE"
+          echo "Finished processing: $FILE" >> "$LOG_DIR/telegram.log"
         done
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    - name: Upload logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: telegram-logs
+        path: logs/
 
     - name: Commit and push archived files
       run: |
@@ -272,3 +247,22 @@ jobs:
 
         # Push the changes to the repository
         git push origin main
+
+    - name: Commit and push logs
+      run: |
+        GITHUB_USER_NAME="GitHub Actions Bot"
+        GITHUB_USER_EMAIL="actions@github.com"
+
+        # Configure Git user information
+        git config user.name "${GITHUB_USER_NAME}"
+        git config user.email "${GITHUB_USER_EMAIL}"
+
+        # Stage all log files
+        git add logs/
+
+        # Commit the logs with the current date in the message
+        git commit -m "Add Telegram logs on $(date +'%Y-%m-%d')" || echo "No log changes to commit."
+
+        # Push the log changes to the repository
+        git push origin main
+
