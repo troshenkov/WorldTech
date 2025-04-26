@@ -1,0 +1,171 @@
+# ==================================================================================================
+# File: .github/workflows/self_test.yml
+#
+# Workflow Name: Comprehensive Self-Test for Markdown Processing Script
+#
+# Description:
+#   This workflow performs a comprehensive self-test for the `scripts/process_markdown_files.sh` script.
+#   It validates the environment, tests the script with various Markdown files, and ensures proper
+#   functionality of the Telegram posting logic. The workflow includes tests for valid Markdown files,
+#   empty files, invalid files, special characters, and batch processing of multiple files.
+#
+# Workflow Steps:
+#   1. Checkout the repository.
+#   2. Set up environment variables for testing.
+#   3. Create an isolated test environment.
+#   4. Generate test Markdown files for various scenarios.
+#   5. Run the `process_markdown_files.sh` script.
+#   6. Verify the output (archived files and logs).
+#   7. Upload logs as GitHub Actions artifacts for debugging.
+#   8. Clean up the test environment.
+#
+# Triggers:
+#   - Manual trigger via `workflow_dispatch`.
+#
+# Artifacts:
+#   - Logs generated during the test are uploaded as artifacts and retained for 7 days.
+#
+# Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
+# Last Updated: 2025-04-26
+# ==================================================================================================
+
+name: Comprehensive Self-Test for Markdown Processing Script
+
+on:
+  workflow_dispatch:  # Allow manual triggering of the self-test workflow
+
+jobs:
+  self_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ----------------------------------------
+      # Step 1: Checkout the repository
+      # ----------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ----------------------------------------
+      # Step 2: Set up environment variables
+      # ----------------------------------------
+      - name: Set up environment variables
+        run: |
+          echo "Setting up fake environment variables for testing..."
+          echo "TELEGRAM_BOT_TOKEN=fake_token" >> $GITHUB_ENV
+          echo "TELEGRAM_CHAT_ID=fake_chat_id" >> $GITHUB_ENV
+
+      # ----------------------------------------
+      # Step 3: Set up isolated test environment
+      # ----------------------------------------
+      - name: Set up test environment
+        run: |
+          echo "Creating isolated test environment..."
+          TEST_DIR=$(mktemp -d -t markdown_test_XXXX)
+          echo "TEST_DIR=$TEST_DIR" >> $GITHUB_ENV
+          mkdir -p "$TEST_DIR/updates" "$TEST_DIR/posted" "$TEST_DIR/logs"
+          echo "Test environment created at $TEST_DIR"
+
+      # ----------------------------------------
+      # Step 4: Create test Markdown files
+      # ----------------------------------------
+      - name: Create test Markdown files
+        run: |
+          echo "Creating test Markdown files..."
+
+          # Valid Markdown file
+          cat <<EOF > ${{ env.TEST_DIR }}/updates/valid.md
+          # Valid Markdown File
+
+          This is a valid Markdown file with images, documents, and text.
+
+          ![Image](https://picsum.photos/200/300)
+          [Document](https://file-examples.com/storage/fe7d258bd9680a7429c6b40/2017/10/file-example_PDF_500_kB.pdf)
+
+          Some text content to test chunking.
+          EOF
+
+          # Empty Markdown file
+          touch ${{ env.TEST_DIR }}/updates/empty.md
+
+          # Invalid Markdown file
+          cat <<EOF > ${{ env.TEST_DIR }}/updates/invalid.md
+          # Invalid Markdown File
+
+          This file contains malformed Markdown syntax.
+
+          ![Image](https://invalid-url)
+          [Document](invalid-url)
+          EOF
+
+          # Markdown file with special characters
+          cat <<EOF > ${{ env.TEST_DIR }}/updates/special_characters.md
+          # Special Characters
+
+          This file contains special characters: * _ [ ] ( ) ~ ` > # + - = | { } . !
+          EOF
+
+          # Large number of Markdown files
+          for i in {1..50}; do
+            echo "# File $i" > ${{ env.TEST_DIR }}/updates/file_$i.md
+            echo "This is file number $i." >> ${{ env.TEST_DIR }}/updates/file_$i.md
+          done
+
+          echo "Test Markdown files created in ${{ env.TEST_DIR }}/updates"
+
+      # ----------------------------------------
+      # Step 5: Run the process_markdown_files.sh script
+      # ----------------------------------------
+      - name: Run process_markdown_files.sh
+        run: |
+          echo "Running process_markdown_files.sh..."
+          chmod +x scripts/process_markdown_files.sh
+          TELEGRAM_BOT_TOKEN="fake_token" TELEGRAM_CHAT_ID="fake_chat_id" \
+          LOG_DIR="${{ env.TEST_DIR }}/logs" NEWS_DIR="${{ env.TEST_DIR }}/updates" POSTED_DIR="${{ env.TEST_DIR }}/posted" \
+          scripts/process_markdown_files.sh > ${{ env.TEST_DIR }}/logs/test.log 2>&1
+          echo "Script execution completed. Logs saved to ${{ env.TEST_DIR }}/logs/test.log"
+
+      # ----------------------------------------
+      # Step 6: Verify the output
+      # ----------------------------------------
+      - name: Verify output
+        run: |
+          echo "Verifying output..."
+
+          # Check if processed files are archived
+          for FILE in valid.md empty.md invalid.md special_characters.md; do
+            ARCHIVED_FILE="${{ env.TEST_DIR }}/posted/$(date +'%Y-%m-%d')_$FILE"
+            if [ -f "$ARCHIVED_FILE" ]; then
+              echo "Test passed: $FILE was processed and archived at $ARCHIVED_FILE"
+            else
+              echo "Test failed: $FILE was not archived."
+              echo "Check logs at ${{ env.TEST_DIR }}/logs/test.log for details."
+              exit 1
+            fi
+          done
+
+          # Check if a log file was generated
+          if [ -f "${{ env.TEST_DIR }}/logs/test.log" ]; then
+            echo "Test passed: Log file was generated at ${{ env.TEST_DIR }}/logs/test.log"
+          else
+            echo "Test failed: Log file was not generated."
+            exit 1
+          fi
+
+      # ----------------------------------------
+      # Step 7: Upload test logs
+      # ----------------------------------------
+      - name: Upload test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: self-test-logs
+          path: ${{ env.TEST_DIR }}/logs/
+          retention-days: 7
+
+      # ----------------------------------------
+      # Step 8: Cleanup test environment
+      # ----------------------------------------
+      - name: Cleanup test environment
+        run: |
+          echo "Cleaning up test environment..."
+          rm -rf ${{ env.TEST_DIR }}
+          echo "Cleanup completed successfully."
