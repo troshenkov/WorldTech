@@ -1,8 +1,8 @@
 # WorldTech Telegram Automation
 
-![Build Status](https://github.com/username/repo/actions/workflows/build.yml/badge.svg)
+![Build Status](https://github.com/troshenkov/WorldTech/actions/workflows/build.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Self-Test Workflow](https://github.com/your-username/your-repo/actions/workflows/self_test.yml/badge.svg)
+![Self-Test Workflow](https://github.com/troshenkov/WorldTech/actions/workflows/self_test.yml/badge.svg)
 
 ## Overview
 This project automates the process of posting Markdown news files to a Telegram channel using GitHub Actions. The workflow (`post_to_tg_channel.yml`) processes files from the `updates/` directory, sends content to Telegram, and archives processed files in the `posted/` directory. It also logs all actions for debugging and uploads logs as GitHub Actions artifacts.
