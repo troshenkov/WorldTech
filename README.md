@@ -1,15 +1,11 @@
 # WorldTech Telegram Automation
 
-<<<<<<< HEAD
-=======
-![Build Status](https://github.com/troshenkov/WorldTech/actions/workflows/post_to_tg_channel.yml/badge.svg)
->>>>>>> 119b61a678fe009aee981002b5272a45bcfff24b
-![License](https://img.shields.io/badge/license-MIT-green)
 ![Build Status](https://github.com/troshenkov/WorldTech/actions/workflows/post_to_tg_channel.yml/badge.svg)
 ![Self-Test Workflow](https://github.com/troshenkov/WorldTech/actions/workflows/self_test.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Overview
-This project automates the process of posting Markdown news files to a Telegram channel using GitHub Actions. The workflow (`post_to_tg_channel.yml`) processes files from the `updates/` directory, sends content to Telegram, and archives processed files in the `posted/` directory. It also logs all actions for debugging and uploads logs as GitHub Actions artifacts.
+This project automates the process of posting Markdown news files to a Telegram channel using GitHub Actions. It validates input data, processes Markdown files, and archives processed files for future reference. The project also includes a self-test workflow to validate the functionality of the scripts in a dry run mode.
 
 ---
 
@@ -17,29 +13,25 @@ This project automates the process of posting Markdown news files to a Telegram 
 - **Automated Posting**:
   - Posts Markdown files to a Telegram channel.
   - Supports images, documents, and text content.
-- **Error Handling**:
-  - Retries failed Telegram API calls and logs errors for debugging.
-- **MarkdownV2 Support**:
-  - Escapes special characters for Telegram MarkdownV2 formatting.
-- **File Archiving**:
+- **Validation**:
+  - Validates Markdown files according to Telegram MarkdownV2 requirements.
+  - Ensures input data is properly formatted and meets Telegram's constraints.
+- **Dry Run Mode**:
+  - Simulates the process without sending messages to Telegram.
+- **Logging and Archiving**:
+  - Logs all actions for debugging.
   - Archives processed files to avoid reposting.
-- **Inline Buttons**:
-  - Adds dynamic inline buttons (e.g., "Read More" links) to posts.
-- **Logging**:
-  - Logs all actions and uploads logs as GitHub Actions artifacts.
 - **Customizable**:
   - Supports environment variables for dynamic configuration.
 - **Modular Design**:
   - Delegates tasks like secret validation and Markdown processing to external scripts for maintainability.
-- **Self-Test Workflow**:
-  - Includes a comprehensive self-test workflow to validate the functionality of the Markdown processing script.
 
 ---
 
 ## Workflows
 
 ### **Main Workflow**
-The workflow is defined in `.github/workflows/post_to_tg_channel.yml` and includes the following steps:
+The main workflow is defined in `.github/workflows/post_to_tg_channel.yml` and includes the following steps:
 1. **Checkout Repository**:
    - Clones the repository to the GitHub Actions runner.
 2. **Validate Secrets**:
@@ -51,7 +43,7 @@ The workflow is defined in `.github/workflows/post_to_tg_channel.yml` and includ
      - Archive processed files in the `posted/` directory.
 4. **Upload Logs**:
    - Saves detailed logs as GitHub Actions artifacts for debugging.
-5. **Commit Changes**:
+5. **Commit and Push Changes**:
    - Uses `scripts/git_setup.sh` to configure Git and commit archived files and logs back to the repository.
 
 ### **Self-Test Workflow**
@@ -69,13 +61,15 @@ The self-test workflow is defined in `.github/workflows/self_test.yml` and perfo
      - Invalid Markdown files.
      - Files with special characters.
      - A batch of 50 Markdown files.
-5. **Run Markdown Processing Script**:
-   - Executes `scripts/process_markdown_files.sh` to process the test files.
-6. **Verify Output**:
+5. **Validate Markdown Files**:
+   - Uses `scripts/validate_markdown.sh` to validate test Markdown files according to Telegram requirements.
+6. **Run Markdown Processing Script (Dry Run)**:
+   - Executes `scripts/process_markdown_files.sh` in dry run mode to simulate processing.
+7. **Verify Output**:
    - Ensures processed files are archived and logs are generated.
-7. **Upload Logs**:
+8. **Upload Logs**:
    - Uploads logs as GitHub Actions artifacts for debugging.
-8. **Cleanup**:
+9. **Cleanup**:
    - Cleans up the test environment after the workflow completes.
 
 ---
@@ -89,6 +83,7 @@ WorldTech/
 ├── scripts/
 │   ├── validate_secrets.sh # Validates required secrets
 │   ├── process_markdown_files.sh # Processes Markdown files
+│   ├── validate_markdown.sh # Validates Markdown files
 │   ├── git_setup.sh        # Configures Git
 ├── .github/
 │   ├── workflows/
@@ -118,3 +113,13 @@ WorldTech/
    git commit -m "Add new updates"
    git push origin main
    ```
+
+---
+
+### **Next Steps**
+1. Replace the content of [README.md](http://_vscodecontentref_/12) with the updated version above.
+2. Commit the changes:
+   ```bash
+   git add README.md
+   git commit -m "Update README.md with workflows and validation details"
+   git push origin main
