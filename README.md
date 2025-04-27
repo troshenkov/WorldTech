@@ -1,5 +1,9 @@
 # WorldTech Telegram Automation
 
+<<<<<<< HEAD
+=======
+![Build Status](https://github.com/troshenkov/WorldTech/actions/workflows/post_to_tg_channel.yml/badge.svg)
+>>>>>>> 119b61a678fe009aee981002b5272a45bcfff24b
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Build Status](https://github.com/troshenkov/WorldTech/actions/workflows/post_to_tg_channel.yml/badge.svg)
 ![Self-Test Workflow](https://github.com/troshenkov/WorldTech/actions/workflows/self_test.yml/badge.svg)

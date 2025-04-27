@@ -14,10 +14,11 @@
 #   2. Set up environment variables for testing.
 #   3. Create an isolated test environment.
 #   4. Generate test Markdown files for various scenarios.
-#   5. Run the `process_markdown_files.sh` script.
-#   6. Verify the output (archived files and logs).
-#   7. Upload logs as GitHub Actions artifacts for debugging.
-#   8. Clean up the test environment.
+#   5. Validate the test Markdown files.
+#   6. Run the `process_markdown_files.sh` script.
+#   7. Verify the output (archived files and logs).
+#   8. Upload logs as GitHub Actions artifacts for debugging.
+#   9. Clean up the test environment.
 #
 # Triggers:
 #   - Manual trigger via `workflow_dispatch`.
@@ -113,7 +114,17 @@ jobs:
           echo "Test Markdown files created in ${{ env.TEST_DIR }}/updates"
 
       # ----------------------------------------
-      # Step 5: Run the process_markdown_files.sh script
+      # Step 5: Validate Markdown files
+      # ----------------------------------------
+      - name: Validate Markdown files
+        run: |
+          echo "Validating test Markdown files..."
+          chmod +x scripts/validate_markdown.sh
+          NEWS_DIR=${{ env.TEST_DIR }}/updates scripts/validate_markdown.sh
+          echo "Validation completed successfully."
+
+      # ----------------------------------------
+      # Step 6: Run the process_markdown_files.sh script
       # ----------------------------------------
       - name: Run process_markdown_files.sh
         run: |
@@ -125,7 +136,7 @@ jobs:
           echo "Script execution completed. Logs saved to ${{ env.TEST_DIR }}/logs/test.log"
 
       # ----------------------------------------
-      # Step 6: Verify the output
+      # Step 7: Verify the output
       # ----------------------------------------
       - name: Verify output
         run: |
@@ -152,7 +163,7 @@ jobs:
           fi
 
       # ----------------------------------------
-      # Step 7: Upload test logs
+      # Step 8: Upload test logs
       # ----------------------------------------
       - name: Upload test logs
         uses: actions/upload-artifact@v4
@@ -162,7 +173,7 @@ jobs:
           retention-days: 7
 
       # ----------------------------------------
-      # Step 8: Cleanup test environment
+      # Step 9: Cleanup test environment
       # ----------------------------------------
       - name: Cleanup test environment
         run: |
