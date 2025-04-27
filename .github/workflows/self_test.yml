@@ -9,17 +9,6 @@
 #   functionality of the Telegram posting logic. The workflow includes tests for valid Markdown files,
 #   empty files, invalid files, special characters, and batch processing of multiple files.
 #
-# Workflow Steps:
-#   1. Checkout the repository.
-#   2. Set up environment variables for testing.
-#   3. Create an isolated test environment.
-#   4. Generate test Markdown files for various scenarios.
-#   5. Validate the test Markdown files.
-#   6. Run the `process_markdown_files.sh` script in dry run mode.
-#   7. Verify the output (archived files and logs).
-#   8. Upload logs as GitHub Actions artifacts for debugging.
-#   9. Clean up the test environment.
-#
 # Triggers:
 #   - Manual trigger via `workflow_dispatch`.
 #
@@ -118,7 +107,7 @@ jobs:
         run: |
           echo "Validating test Markdown files..."
           chmod +x scripts/validate_markdown.sh
-          NEWS_DIR=${{ env.TEST_DIR }}/updates scripts/validate_markdown.sh
+          NEWS_DIR=${{ env.TEST_DIR }}/updates ./scripts/validate_markdown.sh
           echo "Validation completed successfully."
 
       # Step 6: Run the process_markdown_files.sh script in dry run mode
@@ -126,9 +115,9 @@ jobs:
         run: |
           echo "Running process_markdown_files.sh in dry run mode..."
           chmod +x scripts/process_markdown_files.sh
-          DRY_RUN=true TELEGRAM_BOT_TOKEN="fake_token" TELEGRAM_CHAT_ID="fake_chat_id" \
+          DRY_RUN=true TELEGRAM_BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}" TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" \
           LOG_DIR="${{ env.TEST_DIR }}/logs" NEWS_DIR="${{ env.TEST_DIR }}/updates" POSTED_DIR="${{ env.TEST_DIR }}/posted" \
-          scripts/process_markdown_files.sh > ${{ env.TEST_DIR }}/logs/test.log 2>&1
+          ./scripts/process_markdown_files.sh > ${{ env.TEST_DIR }}/logs/test.log 2>&1
           echo "Dry run completed. Logs saved to ${{ env.TEST_DIR }}/logs/test.log"
 
       # Step 7: Verify output
