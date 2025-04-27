@@ -7,12 +7,6 @@ set -e
 # Directory containing Markdown files (default to test/updates for testing)
 NEWS_DIR=${NEWS_DIR:-test/updates}
 
-# Ensure Telegram credentials are set
-if [[ -z "$TELEGRAM_BOT_TOKEN" || -z "$TELEGRAM_CHAT_ID" ]]; then
-  echo "Error: Telegram credentials are not set. Exiting."
-  exit 1
-fi
-
 # Function to send a message to the Telegram bot
 send_to_telegram() {
   local message=$1
