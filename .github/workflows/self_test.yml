@@ -103,6 +103,8 @@ jobs:
           # Special Characters
 
           This file contains special characters: * _ [ ] ( ) ~ \` > # + - = | { } . !
+
+          ![Image](https://picsum.photos/200/300)
           EOF
 
           # Large number of Markdown files
