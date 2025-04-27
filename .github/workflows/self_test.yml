@@ -123,6 +123,12 @@ jobs:
           find ${{ env.TEST_DIR }}/updates -type f -empty -delete
           echo "Empty files removed."
 
+      - name: Remove invalid Markdown files
+        run: |
+          echo "Removing invalid Markdown files..."
+          find ${{ env.TEST_DIR }}/updates -name "invalid.md" -delete
+          echo "Invalid files removed."
+
       - name: Validate Markdown files
         run: |
           echo "Validating test Markdown files..."

@@ -23,8 +23,8 @@ for FILE in "$NEWS_DIR"/*.md; do
     continue
   fi
 
-  # Skip validation for test files (optional)
-  if [[ "$FILE" == *file_* ]]; then
+  # Skip validation for specific test files (e.g., invalid.md)
+  if [[ "$FILE" == *invalid.md ]]; then
     echo "Skipping validation for test file: $FILE"
     continue
   fi
@@ -41,7 +41,7 @@ for FILE in "$NEWS_DIR"/*.md; do
 
   # Check if the content length exceeds Telegram's limit
   CONTENT_LENGTH=$(wc -c < "$FILE")
-  if [ "$CONTENT_LENGTH" -gt 4096 ]; then
+  if [ "$CONTENT_LENGTH" -gt 4096]; then
     echo "Error: $FILE exceeds Telegram's 4096-character limit."
     exit 1
   fi
