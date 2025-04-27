@@ -19,7 +19,7 @@ for FILE in "$NEWS_DIR"/*.md; do
 
   # Check if the file exists and is not empty
   if [ ! -s "$FILE" ]; then
-    echo "Error: $FILE is empty or does not exist."
+    echo "Error: $FILE is empty or does not exist. Please ensure all Markdown files contain valid content."
     exit 1
   fi
 

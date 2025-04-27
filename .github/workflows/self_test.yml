@@ -116,6 +116,12 @@ jobs:
       # ----------------------------------------
       # Step 5: Validate Markdown files
       # ----------------------------------------
+      - name: Remove empty Markdown files
+        run: |
+          echo "Removing empty Markdown files..."
+          find ${{ env.TEST_DIR }}/updates -type f -empty -delete
+          echo "Empty files removed."
+
       - name: Validate Markdown files
         run: |
           echo "Validating test Markdown files..."
