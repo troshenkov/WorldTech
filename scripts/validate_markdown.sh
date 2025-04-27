@@ -4,13 +4,21 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Directory containing Markdown files
-NEWS_DIR=${NEWS_DIR:-updates}
+# Directory containing Markdown files (default to test/updates for testing)
+NEWS_DIR=${NEWS_DIR:-test/updates}
 
-# Check if the directory exists
+# Ensure the directory exists (create it if necessary)
 if [[ ! -d "$NEWS_DIR" ]]; then
-  echo "Error: Directory $NEWS_DIR does not exist."
-  exit 1
+  echo "Directory $NEWS_DIR does not exist. Creating it..."
+  mkdir -p "$NEWS_DIR"
+  echo "Directory $NEWS_DIR created successfully."
+
+  # Populate the directory with test Markdown files
+  echo "Creating test Markdown files in $NEWS_DIR..."
+  echo "# Valid Markdown File" > "$NEWS_DIR/valid.md"
+  echo "![Image](https://picsum.photos/200/300)" >> "$NEWS_DIR/valid.md"
+  echo "# Invalid Markdown File" > "$NEWS_DIR/invalid.md"
+  echo "Test Markdown files created successfully."
 fi
 
 # Validate each Markdown file
