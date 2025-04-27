@@ -35,7 +35,7 @@ for FILE in "$NEWS_DIR"/*.md; do
 
   # Check if the content length exceeds Telegram's limit
   CONTENT_LENGTH=$(wc -c < "$FILE")
-  if [ "$CONTENT_LENGTH" -gt 4096 ]; then
+  if [ "$CONTENT_LENGTH" -gt 4096]; then
     echo "Error: $FILE exceeds Telegram's 4096-character limit."
     exit 1
   fi

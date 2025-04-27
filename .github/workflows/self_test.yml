@@ -15,7 +15,7 @@
 #   3. Create an isolated test environment.
 #   4. Generate test Markdown files for various scenarios.
 #   5. Validate the test Markdown files.
-#   6. Run the `process_markdown_files.sh` script.
+#   6. Run the `process_markdown_files.sh` script in dry run mode.
 #   7. Verify the output (archived files and logs).
 #   8. Upload logs as GitHub Actions artifacts for debugging.
 #   9. Clean up the test environment.
@@ -27,7 +27,7 @@
 #   - Logs generated during the test are uploaded as artifacts and retained for 7 days.
 #
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
-# Last Updated: 2025-04-26
+# Last Updated: 2025-04-27
 # ==================================================================================================
 
 name: Comprehensive Self-Test for Markdown Processing Script
@@ -124,16 +124,16 @@ jobs:
           echo "Validation completed successfully."
 
       # ----------------------------------------
-      # Step 6: Run the process_markdown_files.sh script
+      # Step 6: Run the process_markdown_files.sh script in dry run mode
       # ----------------------------------------
-      - name: Run process_markdown_files.sh
+      - name: Run process_markdown_files.sh (Dry Run)
         run: |
-          echo "Running process_markdown_files.sh..."
+          echo "Running process_markdown_files.sh in dry run mode..."
           chmod +x scripts/process_markdown_files.sh
-          TELEGRAM_BOT_TOKEN="fake_token" TELEGRAM_CHAT_ID="fake_chat_id" \
+          DRY_RUN=true TELEGRAM_BOT_TOKEN="fake_token" TELEGRAM_CHAT_ID="fake_chat_id" \
           LOG_DIR="${{ env.TEST_DIR }}/logs" NEWS_DIR="${{ env.TEST_DIR }}/updates" POSTED_DIR="${{ env.TEST_DIR }}/posted" \
           scripts/process_markdown_files.sh > ${{ env.TEST_DIR }}/logs/test.log 2>&1
-          echo "Script execution completed. Logs saved to ${{ env.TEST_DIR }}/logs/test.log"
+          echo "Dry run completed. Logs saved to ${{ env.TEST_DIR }}/logs/test.log"
 
       # ----------------------------------------
       # Step 7: Verify the output
