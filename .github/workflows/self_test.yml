@@ -40,24 +40,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ----------------------------------------
       # Step 1: Checkout the repository
-      # ----------------------------------------
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # ----------------------------------------
       # Step 2: Set up environment variables
-      # ----------------------------------------
       - name: Set up environment variables
         run: |
           echo "Setting up fake environment variables for testing..."
           echo "TELEGRAM_BOT_TOKEN=fake_token" >> $GITHUB_ENV
           echo "TELEGRAM_CHAT_ID=fake_chat_id" >> $GITHUB_ENV
 
-      # ----------------------------------------
       # Step 3: Set up isolated test environment
-      # ----------------------------------------
       - name: Set up test environment
         run: |
           echo "Creating isolated test environment..."
@@ -66,9 +60,7 @@ jobs:
           mkdir -p "$TEST_DIR/updates" "$TEST_DIR/posted" "$TEST_DIR/logs"
           echo "Test environment created at $TEST_DIR"
 
-      # ----------------------------------------
       # Step 4: Create test Markdown files
-      # ----------------------------------------
       - name: Create test Markdown files
         run: |
           echo "Creating test Markdown files..."
@@ -116,21 +108,7 @@ jobs:
 
           echo "Test Markdown files created in ${{ env.TEST_DIR }}/updates"
 
-      # ----------------------------------------
       # Step 5: Validate Markdown files
-      # ----------------------------------------
-      - name: Remove empty Markdown files
-        run: |
-          echo "Removing empty Markdown files..."
-          find ${{ env.TEST_DIR }}/updates -type f -empty -delete
-          echo "Empty files removed."
-
-      - name: Remove invalid Markdown files
-        run: |
-          echo "Removing invalid Markdown files..."
-          find ${{ env.TEST_DIR }}/updates -name "invalid.md" -delete
-          echo "Invalid files removed."
-
       - name: Validate Markdown files
         run: |
           echo "Validating test Markdown files..."
@@ -138,9 +116,7 @@ jobs:
           NEWS_DIR=${{ env.TEST_DIR }}/updates scripts/validate_markdown.sh
           echo "Validation completed successfully."
 
-      # ----------------------------------------
       # Step 6: Run the process_markdown_files.sh script in dry run mode
-      # ----------------------------------------
       - name: Run process_markdown_files.sh (Dry Run)
         run: |
           echo "Running process_markdown_files.sh in dry run mode..."
@@ -150,9 +126,7 @@ jobs:
           scripts/process_markdown_files.sh > ${{ env.TEST_DIR }}/logs/test.log 2>&1
           echo "Dry run completed. Logs saved to ${{ env.TEST_DIR }}/logs/test.log"
 
-      # ----------------------------------------
-      # Step 7: Verify the output
-      # ----------------------------------------
+      # Step 7: Verify output
       - name: Verify output
         run: |
           echo "Verifying output..."
@@ -177,9 +151,7 @@ jobs:
             exit 1
           fi
 
-      # ----------------------------------------
       # Step 8: Upload test logs
-      # ----------------------------------------
       - name: Upload test logs
         uses: actions/upload-artifact@v4
         with:
@@ -187,9 +159,7 @@ jobs:
           path: ${{ env.TEST_DIR }}/logs/
           retention-days: 7
 
-      # ----------------------------------------
       # Step 9: Cleanup test environment
-      # ----------------------------------------
       - name: Cleanup test environment
         run: |
           echo "Cleaning up test environment..."
