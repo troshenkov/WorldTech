@@ -30,7 +30,7 @@
 # Last Updated: 2025-04-27
 # ==================================================================================================
 
-name: Comprehensive Self-Test for Markdown Processing Script
+name: Self Test Workflow
 
 on:
   workflow_dispatch:  # Allow manual triggering of the self-test workflow
@@ -38,6 +38,7 @@ on:
 jobs:
   self_test:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       # Step 1: Checkout the repository
@@ -46,10 +47,11 @@ jobs:
 
       # Step 2: Set up environment variables
       - name: Set up environment variables
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          echo "Setting up fake environment variables for testing..."
-          echo "TELEGRAM_BOT_TOKEN=fake_token" >> $GITHUB_ENV
-          echo "TELEGRAM_CHAT_ID=fake_chat_id" >> $GITHUB_ENV
+          echo "Environment variables set for Telegram integration."
 
       # Step 3: Set up isolated test environment
       - name: Set up test environment
@@ -110,6 +112,9 @@ jobs:
 
       # Step 5: Validate Markdown files
       - name: Validate Markdown files
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           echo "Validating test Markdown files..."
           chmod +x scripts/validate_markdown.sh
