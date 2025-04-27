@@ -102,7 +102,7 @@ jobs:
           cat <<EOF > ${{ env.TEST_DIR }}/updates/special_characters.md
           # Special Characters
 
-          This file contains special characters: * _ [ ] ( ) ~ ` > # + - = | { } . !
+          This file contains special characters: * _ [ ] ( ) ~ \` > # + - = | { } . !
           EOF
 
           # Large number of Markdown files
