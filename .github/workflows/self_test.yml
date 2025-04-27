@@ -109,6 +109,7 @@ jobs:
           for i in {1..50}; do
             echo "# File $i" > ${{ env.TEST_DIR }}/updates/file_$i.md
             echo "This is file number $i." >> ${{ env.TEST_DIR }}/updates/file_$i.md
+            echo "![Image](https://picsum.photos/200/300)" >> ${{ env.TEST_DIR }}/updates/file_$i.md
           done
 
           echo "Test Markdown files created in ${{ env.TEST_DIR }}/updates"
