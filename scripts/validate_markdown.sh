@@ -16,10 +16,14 @@ fi
 # Function to send a message to the Telegram bot
 send_to_telegram() {
   local message=$1
-  curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-    -d chat_id="${TELEGRAM_CHAT_ID}" \
-    -d text="${message}" \
-    -d parse_mode="MarkdownV2" > /dev/null
+  if [[ -n "$TELEGRAM_BOT_TOKEN" && -n "$TELEGRAM_CHAT_ID" ]]; then
+    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+      -d chat_id="${TELEGRAM_CHAT_ID}" \
+      -d text="${message}" \
+      -d parse_mode="MarkdownV2" > /dev/null
+  else
+    echo "Telegram credentials are not set. Skipping Telegram notification."
+  fi
 }
 
 # Ensure the directory exists (create it if necessary)
