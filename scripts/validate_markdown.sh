@@ -6,6 +6,12 @@ set -e
 
 # Directory containing Markdown files (default to test/updates for testing)
 NEWS_DIR=${NEWS_DIR:-test/updates}
+POSTED_DIR=${POSTED_DIR:-/tmp/markdown_test_tQCI/posted}
+LOG_DIR=${LOG_DIR:-/tmp/markdown_test_tQCI/logs}
+
+# Ensure the posted and log directories exist
+mkdir -p "$POSTED_DIR"
+mkdir -p "$LOG_DIR"
 
 # Function to send a message to the Telegram bot
 send_to_telegram() {
@@ -83,6 +89,11 @@ for FILE in "$NEWS_DIR"/*.md; do
     send_to_telegram "Error: $FILE contains invalid URLs."
     exit 1
   fi
+
+  # Archive the validated file
+  ARCHIVED_FILE="$POSTED_DIR/$(date +'%Y-%m-%d')_$(basename "$FILE")"
+  cp "$FILE" "$ARCHIVED_FILE"
+  echo "Archived $FILE to $ARCHIVED_FILE"
 
   # Notify Telegram about successful validation
   echo "File $FILE validated successfully."
