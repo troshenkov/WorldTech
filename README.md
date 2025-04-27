@@ -2,7 +2,7 @@
 
 ![Build Status](https://github.com/troshenkov/WorldTech/actions/workflows/post_to_tg_channel.yml/badge.svg)
 ![Self-Test Workflow](https://github.com/troshenkov/WorldTech/actions/workflows/self_test.yml/badge.svg)
-![License](https://img.shields.io/badge/license-MIT-green)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 ## Overview
 This project automates the process of posting Markdown news files to a Telegram channel using GitHub Actions. It validates input data, processes Markdown files, and archives processed files for future reference. The project also includes a self-test workflow to validate the functionality of the scripts in a dry run mode.
@@ -100,26 +100,6 @@ WorldTech/
 - A Telegram bot token (`TELEGRAM_BOT_TOKEN`).
 - The chat ID of the target Telegram channel (`TELEGRAM_CHAT_ID`).
 
-### Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/troshenkov/WorldTech.git
-   cd WorldTech
-   ```
 
-2. Add new updates:
-   ```bash
-   git add updates/
-   git commit -m "Add new updates"
-   git push origin main
-   ```
 
 ---
-
-### **Next Steps**
-1. Replace the content of [README.md](http://_vscodecontentref_/12) with the updated version above.
-2. Commit the changes:
-   ```bash
-   git add README.md
-   git commit -m "Update README.md with workflows and validation details"
-   git push origin main
