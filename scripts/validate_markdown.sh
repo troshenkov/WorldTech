@@ -36,12 +36,12 @@ for FILE in "$NEWS_DIR"/*.md; do
   fi
 
   # Check for Telegram MarkdownV2 special characters and escape them
-  ESCAPED_CONTENT=$(sed -E 's/([*_~`>#+\-=|{}.!])/\\\1/g' "$FILE")
+  ESCAPED_CONTENT=$(sed -E 's/([*_~`>#+=|{}.!-])/\\\1/g' "$FILE")
   echo "$ESCAPED_CONTENT" > "$FILE"
 
   # Check if the content length exceeds Telegram's limit
   CONTENT_LENGTH=$(wc -c < "$FILE")
-  if [ "$CONTENT_LENGTH" -gt 4096]; then
+  if [ "$CONTENT_LENGTH" -gt 4096 ]; then
     echo "Error: $FILE exceeds Telegram's 4096-character limit."
     exit 1
   fi
