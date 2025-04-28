@@ -4,24 +4,27 @@
 # Workflow Name: Self-Test Workflow for Markdown Validation
 #
 # Description:
-#   This workflow validates Markdown files in the `updates` folder and ensures proper functionality
-#   of the Telegram posting logic. It triggers manually or when changes are made to the `updates` folder.
+#   This workflow validates Markdown files in the `updates` folder and
+#   ensures proper functionality of the Telegram posting logic.
+#   It triggers manually or when changes are made to the `updates` folder.
 #
 # Triggers:
 #   - Manual trigger via `workflow_dispatch`.
 #   - On changes to the `updates` folder.
 #
 # Artifacts:
-#   - Logs generated during the test are uploaded as artifacts and retained for 7 days.
+#   - Logs generated during the test are uploaded as artifacts and
+#     retained for 7 days.
 #
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
 # Last Updated: 2025-04-27
 # ==================================================================================================
 
+---
 name: Self Test Workflow
 
 on:
-  workflow_dispatch: true  # Allow manual triggering of the workflow
+  workflow_dispatch:  # Allow manual triggering of the workflow
   push:
     paths:
       - "updates/**"  # Trigger when files in the `updates` folder are changed
@@ -59,8 +62,8 @@ jobs:
         run: |
           echo "Previewing Telegram messages..."
           DRY_RUN=true TELEGRAM_BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
-          TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" NEWS_DIR="updates" \
-          ./scripts/validate_markdown.sh
+          TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          NEWS_DIR="updates" ./scripts/validate_markdown.sh
           echo "Preview completed. No messages were sent to Telegram."
 
       # Step 5: Check for logs
