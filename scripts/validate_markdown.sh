@@ -1,11 +1,10 @@
 #!/bin/bash
-# filepath: /home/mit/Downloads/Github/WorldTech/scripts/validate_markdown.sh
 
 # ==================================================================================================
 # Script Name: validate_markdown.sh
 #
 # Description:
-#   This script validates Markdown files in a specified directory. It performs the following tasks:
+#   This script validates Markdown files in the `updates` folder. It performs the following tasks:
 #     - Ensures required directories exist.
 #     - Validates Markdown files for required content (e.g., images or links).
 #     - Escapes special characters for Telegram MarkdownV2 compatibility.
@@ -18,7 +17,7 @@
 #   ./validate_markdown.sh
 #
 # Environment Variables:
-#   - NEWS_DIR: Directory containing Markdown files (default: test/updates).
+#   - NEWS_DIR: Directory containing Markdown files (default: updates).
 #   - POSTED_DIR: Directory to archive validated files (default: /tmp/markdown_test_tQCI/posted).
 #   - LOG_DIR: Directory to store logs (default: /tmp/markdown_test_tQCI/logs).
 #   - TELEGRAM_BOT_TOKEN: Telegram bot token for sending notifications.
@@ -32,7 +31,7 @@
 set -e
 
 # Configurable directories
-NEWS_DIR=${NEWS_DIR:-test/updates}
+NEWS_DIR=${NEWS_DIR:-updates}
 POSTED_DIR=${POSTED_DIR:-/tmp/markdown_test_tQCI/posted}
 LOG_DIR=${LOG_DIR:-/tmp/markdown_test_tQCI/logs}
 
