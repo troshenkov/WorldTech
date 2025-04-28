@@ -21,7 +21,7 @@
 name: Self Test Workflow
 
 on:
-  workflow_dispatch:  # Allow manual triggering of the workflow
+  workflow_dispatch: true  # Allow manual triggering of the workflow
   push:
     paths:
       - "updates/**"  # Trigger when files in the `updates` folder are changed
@@ -58,14 +58,16 @@ jobs:
       - name: Preview Telegram messages
         run: |
           echo "Previewing Telegram messages..."
-          DRY_RUN=true TELEGRAM_BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}" TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          NEWS_DIR="updates" ./scripts/validate_markdown.sh
+          DRY_RUN=true TELEGRAM_BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
+          TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" NEWS_DIR="updates" \
+          ./scripts/validate_markdown.sh
           echo "Preview completed. No messages were sent to Telegram."
 
       # Step 5: Check for logs
-        - name: Check for logs
+      - name: Check for logs
         run: |
-          if [ ! -d "/tmp/markdown_test_tQCI/logs/" ] || [ -z "$(ls -A /tmp/markdown_test_tQCI/logs/)" ]; then
+          if [ ! -d "/tmp/markdown_test_tQCI/logs/" ] || \
+             [ -z "$(ls -A /tmp/markdown_test_tQCI/logs/)" ]; then
             echo "No logs found. Skipping artifact upload."
             exit 0
           fi
