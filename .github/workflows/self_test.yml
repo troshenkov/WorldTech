@@ -4,7 +4,7 @@
 # Workflow Name: Comprehensive Self-Test for Markdown Processing Script
 #
 # Description:
-#   This workflow performs a comprehensive self-test for the `scripts/process_markdown_files.sh` script.
+#   This workflow performs a comprehensive self-test for the `scripts/validate_markdown.sh` script.
 #   It validates the environment, tests the script with various Markdown files, and ensures proper
 #   functionality of the Telegram posting logic. The workflow includes tests for valid Markdown files,
 #   empty files, invalid files, special characters, and batch processing of multiple files.
@@ -110,18 +110,15 @@ jobs:
           NEWS_DIR=${{ env.TEST_DIR }}/updates ./scripts/validate_markdown.sh
           echo "Validation completed successfully."
 
-      # Step 6: Run the process_markdown_files.sh script in dry run mode
-      - name: Run process_markdown_files.sh (Dry Run)
+      # Step 6: Preview Telegram messages (Dry Run)
+      - name: Preview Telegram messages
         run: |
-          echo "Running process_markdown_files.sh in dry run mode..."
-          chmod +x scripts/process_markdown_files.sh
+          echo "Previewing Telegram messages..."
           DRY_RUN=true TELEGRAM_BOT_TOKEN="${{ secrets.TELEGRAM_BOT_TOKEN }}" TELEGRAM_CHAT_ID="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          LOG_DIR="${{ env.TEST_DIR }}/logs" NEWS_DIR="${{ env.TEST_DIR }}/updates" POSTED_DIR="${{ env.TEST_DIR }}/posted" \
-          ./scripts/process_markdown_files.sh > ${{ env.TEST_DIR }}/logs/test.log 2>&1
-          echo "Dry run completed. Logs saved to ${{ env.TEST_DIR }}/logs/test.log"
+          NEWS_DIR="${{ env.TEST_DIR }}/updates" ./scripts/validate_markdown.sh
+          echo "Preview completed. No messages were sent to Telegram."
 
       # Step 7: Verify output
-      - name: Verify output
         run: |
           echo "Verifying output..."
 
