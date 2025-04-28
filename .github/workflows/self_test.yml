@@ -119,6 +119,7 @@ jobs:
           echo "Preview completed. No messages were sent to Telegram."
 
       # Step 7: Verify output
+      - name: Verify output
         run: |
           echo "Verifying output..."
 
