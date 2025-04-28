@@ -73,6 +73,7 @@ for FILE in "$NEWS_DIR"/*.md; do
   # Check if the file exists and is not empty
   if [[ ! -s "$FILE" ]]; then
     echo "Warning: $FILE is empty. Skipping validation."
+    echo "Warning: $FILE is empty. Skipping validation." >> "$LOG_DIR/validation.log"
     send_to_telegram "Warning: $FILE is empty. Skipping validation."
     continue
   fi
@@ -80,6 +81,7 @@ for FILE in "$NEWS_DIR"/*.md; do
   # Check for required fields (e.g., at least one image or link)
   if ! grep -qE '!\[.*\]\(.*\)|\[.*\]\(.*\)' "$FILE"; then
     echo "Warning: $FILE does not contain any valid images or links. Skipping validation."
+    echo "Warning: $FILE does not contain any valid images or links." >> "$LOG_DIR/validation.log"
     send_to_telegram "Warning: $FILE does not contain any valid images or links. Skipping validation."
     continue
   fi
@@ -92,6 +94,7 @@ for FILE in "$NEWS_DIR"/*.md; do
   CONTENT_LENGTH=$(wc -c < "$FILE")
   if [[ "$CONTENT_LENGTH" -gt 4096 ]]; then
     echo "Error: $FILE exceeds Telegram's 4096-character limit."
+    echo "Error: $FILE exceeds Telegram's 4096-character limit." >> "$LOG_DIR/validation.log"
     send_to_telegram "Error: $FILE exceeds Telegram's 4096-character limit."
     exit 1
   fi
@@ -99,6 +102,7 @@ for FILE in "$NEWS_DIR"/*.md; do
   # Validate URLs in the file
   if grep -oE '\(http[s]?:\/\/[^\)]+\)' "$FILE" | grep -vqE '^http[s]?:\/\/'; then
     echo "Error: $FILE contains invalid URLs."
+    echo "Error: $FILE contains invalid URLs." >> "$LOG_DIR/validation.log"
     send_to_telegram "Error: $FILE contains invalid URLs."
     exit 1
   fi
@@ -107,12 +111,15 @@ for FILE in "$NEWS_DIR"/*.md; do
   ARCHIVED_FILE="$POSTED_DIR/$(date +'%Y-%m-%d')_$(basename "$FILE")"
   cp "$FILE" "$ARCHIVED_FILE"
   echo "Archived $FILE to $ARCHIVED_FILE"
+  echo "Archived $FILE to $ARCHIVED_FILE" >> "$LOG_DIR/validation.log"
 
   # Notify Telegram about successful validation
   echo "File $FILE validated successfully."
+  echo "File $FILE validated successfully." >> "$LOG_DIR/validation.log"
   send_to_telegram "File $FILE validated successfully."
 done
 
 # Notify Telegram about successful validation of all files
 echo "All files in $NEWS_DIR are valid."
+echo "All files in $NEWS_DIR are valid." >> "$LOG_DIR/validation.log"
 send_to_telegram "All files in $NEWS_DIR are valid."

@@ -62,10 +62,19 @@ jobs:
           NEWS_DIR="updates" ./scripts/validate_markdown.sh
           echo "Preview completed. No messages were sent to Telegram."
 
-      # Step 5: Upload test logs
+      # Step 5: Check for logs
+        - name: Check for logs
+        run: |
+          if [ ! -d "/tmp/markdown_test_tQCI/logs/" ] || [ -z "$(ls -A /tmp/markdown_test_tQCI/logs/)" ]; then
+            echo "No logs found. Skipping artifact upload."
+            exit 0
+          fi
+
+      # Step 6: Upload test logs
       - name: Upload test logs
         uses: actions/upload-artifact@v4
         with:
           name: self-test-logs
           path: /tmp/markdown_test_tQCI/logs/
           retention-days: 7
+          if-no-files-found: warn
