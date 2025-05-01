@@ -11,26 +11,46 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - shell: bash
+
+      - name: Post Markdown files to Telegram
+        shell: bash
         env:
           tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-         # Get the list of files changed in the last commit
-          new_f=$(git diff-tree --no-commit-id --name-only -r HEAD )
-          echo "NEW F: " $new_f
-          if [ $new_f == "" ]; then
-            echo "No .md file in commit:"
+          # Get the list of files changed in the last commit
+          new_f=$(git diff-tree --no-commit-id --name-only -r HEAD | grep ".md")
+          echo "NEW F: $new_f"
+
+          # Check if any Markdown files were found
+          if [ -z "$new_f" ]; then
+            echo "No .md file in commit."
             exit 1
-          else
-            echo "Some hp"      
           fi
-          char_num=$(cat new_f | wc -c)
-          echo "NUM: " $char_num
-          if [ char_num -ge 4096 ]; then 
-            echo "The text to big: " $((4096 - $char_num))
-            exit 1
-          fi 
-          if [ -f $new_md ]; then
-            curl -s -X POST  https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d parse_mode=Markdown --data-urlencode text@$new_md
-          fi
+
+          # Iterate over each Markdown file
+          for file in $new_f; do
+            echo "Processing file: $file"
+
+            # Check if the file exists
+            if [ ! -f "$file" ]; then
+              echo "Error: File $file does not exist."
+              exit 1
+            fi
+
+            # Check the character count of the file
+            char_num=$(wc -c < "$file")
+            echo "Character count for $file: $char_num"
+
+            if [ "$char_num" -ge 4096 ]; then
+              echo "The text in $file is too big: $((char_num - 4096)) characters over the limit."
+              exit 1
+            fi
+
+            # Post the file content to Telegram
+            curl -s -X POST \
+              https://api.telegram.org/bot$tg_bot_token/sendMessage \
+              -d chat_id=$tg_chat_id \
+              -d parse_mode=Markdown \
+              --data-urlencode text@"$file"
+          done
