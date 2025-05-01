@@ -4,13 +4,13 @@ on:
     types:
       - closed
     branches:
-      - master
+      - oid
 jobs:
    if_merged:
      if: github.event.pull_request.merged == true
      runs-on: ubuntu-latest
      environment: production
-     
+
      steps:
        - name: Check out the repository to the runner
          uses: actions/checkout@v4
