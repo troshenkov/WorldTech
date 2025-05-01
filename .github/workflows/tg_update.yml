@@ -10,6 +10,7 @@ jobs:
      if: github.event.pull_request.merged == true
      runs-on: ubuntu-latest
      environment: production
+     
      steps:
        - name: Check out the repository to the runner
          uses: actions/checkout@v4
@@ -18,11 +19,11 @@ jobs:
        - shell: bash
          env:
             tg_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-            tg_channel_id: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+            tg_chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
          run: |
            new_md=$(git diff-tree --no-commit-id --name-only -r HEAD | grep  ".md" )
            if [ -f $new_md ]; then
             curl -s -X POST  -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
-            https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_channel_id -d parse_mode=Markdown \
+            https://api.telegram.org/bot$tg_bot_token/sendMessage -d chat_id=$tg_chat_id -d parse_mode=Markdown \
              --data-urlencode text@$new_md
            fi
