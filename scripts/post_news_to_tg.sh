@@ -22,8 +22,9 @@
 #   TG_BOT_TOKEN : Telegram bot token (required)
 #   TG_CHAT_ID   : Telegram chat/channel ID (required)
 #   GITHUB_EVENT_NAME : Used to distinguish between push/manual runs (optional)
+#   ENVIRONMENT  : Set to "production" for production runs (optional)
 #
-# Author: [Your Name]
+# Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
@@ -37,6 +38,10 @@ LOG_FILE="scripts/post_news_to_tg.log"
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
+
+# --- Log environment ---
+ENVIRONMENT="${ENVIRONMENT:-development}"
+log "Running in environment: $ENVIRONMENT"
 
 # --- Check required environment variables ---
 if [[ -z "${TG_BOT_TOKEN:-}" || -z "${TG_CHAT_ID:-}" ]]; then
@@ -92,6 +97,9 @@ for file in $CHANGED_FILES; do
     continue
   fi
 
+  # --- Escape Telegram Markdown special characters ---
+  # Optionally, you can escape special characters for MarkdownV2 here if needed
+
   # --- Post file content to Telegram ---
   resp=$(curl -s -X POST \
     -H "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
@@ -106,8 +114,28 @@ for file in $CHANGED_FILES; do
     log "Posted $file successfully."
     echo "$fname" >> "$POSTED_TRACKER"
   else
-    log "Failed to post $file. Response: $resp"
+    err_msg=$(echo "$resp" | grep -o '"description":"[^"]*' | cut -d'"' -f4)
+    log "Failed to post $file. Telegram error: ${err_msg:-$resp}"
   fi
+
+  # --- Extract image URLs from Markdown and send as Telegram photos ---
+  # This regex matches ![alt](url) and extracts the url part
+  image_urls=$(grep -oP '!\[.*?\]\(\K[^)]+' "$file" || true)
+  for img_url in $image_urls; do
+    log "Posting image from $file: $img_url"
+    resp=$(curl -s -X POST \
+      "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendPhoto" \
+      -F chat_id="${TG_CHAT_ID}" \
+      -F photo="$img_url" \
+      -F caption="News image from $fname")
+    ok=$(echo "$resp" | grep -o '"ok":true' || true)
+    if [[ -n "$ok" ]]; then
+      log "Posted image $img_url from $file successfully."
+    else
+      err_msg=$(echo "$resp" | grep -o '"description":"[^"]*' | cut -d'"' -f4)
+      log "Failed to post image $img_url from $file. Telegram error: ${err_msg:-$resp}"
+    fi
+  done
 done
 
 log "All done."

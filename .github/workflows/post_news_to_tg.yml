@@ -18,6 +18,7 @@
 #   TG_BOT_TOKEN      : Telegram bot token (from secrets)
 #   TG_CHAT_ID        : Telegram chat/channel ID (from secrets)
 #   GITHUB_EVENT_NAME : The event that triggered the workflow (for script logic)
+#   ENVIRONMENT       : Set to "production" for production runs
 #
 # Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
 # -----------------------------------------------------------------------------
@@ -43,10 +44,49 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Show environment and workflow context
+        run: |
+          echo "Bash version: $BASH_VERSION"
+          echo "Running on: $(uname -a)"
+          echo "Workflow triggered by: ${{ github.event_name }}"
+          echo "Current branch: ${{ github.ref }}"
+          echo "TG_BOT_TOKEN and TG_CHAT_ID are set: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != '' }}"
+
+      - name: Lint Markdown files
+        run: |
+          sudo npm install -g markdownlint-cli
+          markdownlint topics/*.md
+
+      - name: Validate Telegram Markdown (basic check)
+        run: |
+          for file in topics/*.md; do
+            if grep -q '[\[\]\(\)]' "$file"; then
+              echo "Checking brackets and parentheses in $file"
+              # Simple check for unbalanced brackets/parentheses
+              open_brackets=$(grep -o '\[' "$file" | wc -l)
+              close_brackets=$(grep -o '\]' "$file" | wc -l)
+              open_parens=$(grep -o '(' "$file" | wc -l)
+              close_parens=$(grep -o ')' "$file" | wc -l)
+              if [ "$open_brackets" -ne "$close_brackets" ] || [ "$open_parens" -ne "$close_parens" ]; then
+                echo "::error file=$file::Unbalanced brackets or parentheses detected."
+                exit 1
+              fi
+            fi
+          done
+
       - name: Post new Markdown news to Telegram
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          ENVIRONMENT: production
         run: |
           bash scripts/post_news_to_tg.sh
+
+      - name: Upload post log as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-news-log
+          path: scripts/post_news_to_tg.log
+          retention-days: 7
