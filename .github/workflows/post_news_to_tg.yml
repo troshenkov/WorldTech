@@ -52,10 +52,10 @@ jobs:
           echo "Current branch: ${{ github.ref }}"
           echo "TG_BOT_TOKEN and TG_CHAT_ID are set: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != '' }}"
 
-      - name: Lint Markdown files
+      - name: Lint and auto-fix Markdown files
         run: |
-          sudo npm install -g markdownlint-cli
-          markdownlint topics/*.md
+          sudo npm install -g markdownlint-cli2
+          npx markdownlint-cli2-fix "topics/*.md"
 
       - name: Validate Telegram Markdown (basic check)
         run: |
