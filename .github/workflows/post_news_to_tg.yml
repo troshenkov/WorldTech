@@ -1,0 +1,52 @@
+# -----------------------------------------------------------------------------
+# Workflow: Post News to Telegram
+#
+# This GitHub Actions workflow automates posting news from Markdown (.md) files
+# in the topics/ directory to a Telegram channel using the Telegram Bot API.
+#
+# Triggers:
+#   - Manual trigger via workflow_dispatch (from the GitHub UI)
+#   - On push: when any Markdown file in topics/ is added, changed, or deleted
+#   - (Optional) On tag: uncomment the tag section to trigger on tag push
+#
+# Requirements:
+#   - The repository must contain a Bash script at scripts/post_news_to_tg.sh
+#   - Telegram bot token and chat ID must be stored as repository secrets:
+#       TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+#
+# Environment Variables Passed to Script:
+#   TG_BOT_TOKEN      : Telegram bot token (from secrets)
+#   TG_CHAT_ID        : Telegram chat/channel ID (from secrets)
+#   GITHUB_EVENT_NAME : The event that triggered the workflow (for script logic)
+#
+# Author: Dmitry Troshenkov <troshenkov.d@gmail.com>
+# -----------------------------------------------------------------------------
+
+name: Post News to Telegram
+
+on:
+  workflow_dispatch:        # Allow manual trigger from GitHub UI
+  push:
+    paths:
+      - 'topics/*.md'       # Trigger only when Markdown files in topics/ change
+  # Uncomment to trigger on tags
+  # push:
+  #   tags:
+  #     - 'news-*'
+
+jobs:
+  post_news:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Post new Markdown news to Telegram
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: |
+          bash scripts/post_news_to_tg.sh
